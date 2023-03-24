@@ -229,9 +229,6 @@ if 'tickers' not in st.session_state:
 else:
     tickers = st.session_state.tickers
 
-# Get start date from user input
-start_date = st.date_input("Start Date", dt.date(2021, 1, 1))
-
 # Create empty dataframe to store RSI data
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
