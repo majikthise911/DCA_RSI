@@ -175,9 +175,6 @@ except Exception as e:
     logging.exception('An error occurred: %s', str(e))
 #___________________________________________2/2/23 _________________________________________________________
 
-
-
-
 stocks_df['Optimized Portfolio Amounts'] = 0
 stocks_df2 = stocks_df
 stocks_df2['Time'] = stocks_df2.index
@@ -213,40 +210,45 @@ st.caption(':point_down: Check any of the boxes below to see more details about 
 
 results = st.checkbox('Detailed Results')
 if results:
-	# Display pie chart created below 
+    # Display pie chart created below 
 
-	# Tables of weights and amounts
-	col1, col2 = st.columns(2)
-	with col1:
-		# display the weights_df dataframe
-		st.markdown('''#### WEIGHTS 
-					(must add up to 1) ''')
-		st.dataframe(weights_df)
-		
-	with col2:
-		st.markdown(f'''#### BUY THIS AMOUNT 
-					(must add up to $ {amount}) ''')
-		st.dataframe(amounts_sorted)
+    # Tables of weights and amounts
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        # display the weights_df dataframe
+        st.markdown('''#### WEIGHTS 
+                    (must add up to 1) ''')
+        st.dataframe(weights_df)
 
+    with col2:
+        st.markdown(f'''#### BUY THIS AMOUNT 
+                    (must add up to $ {amount}) ''')
+        st.dataframe(amounts_sorted)
+
+    with col3:
+        st.markdown('''#### RSI
+                    ''')
+        st.dataframe(st.session_state.rsi_df)
+    
 	# Create a pie chart of the amounts_sorted dataframe
 
-	st.header('Performance Expectations:')
+    st.header('Performance Expectations:')
 
 	# st.subheader('Expected annual return: {}%'.format((expected_annual_return*100).round(2)))
-	st.markdown(''' ### Expected annual return: :green[{}%] '''.format((expected_annual_return*100).round(2)))
-	big_wrds = st.expander("big wrds??")
-	big_wrds.caption("Annual expected return shows how much money you can get from a thing you put your eggs in. Big number good, little number bad.")
+    st.markdown(''' ### Expected annual return: :green[{}%] '''.format((expected_annual_return*100).round(2)))
+    big_wrds = st.expander("big wrds??")
+    big_wrds.caption("Annual expected return shows how much money you can get from a thing you put your eggs in. Big number good, little number bad.")
 
 	# st.subheader('Annual volatility: {}%'.format((annual_volatility*100).round(2)))
-	st.markdown(''' ### Annual volatility: :green[{}%] '''.format((annual_volatility*100).round(2)))
-	so_wat = st.expander("so wat??")
-	so_wat.caption("Volatility mean big ups and big downs for investment. More ups and downs mean more danger, but also maybe more meat for hunt.")
+    st.markdown(''' ### Annual volatility: :green[{}%] '''.format((annual_volatility*100).round(2)))
+    so_wat = st.expander("so wat??")
+    so_wat.caption("Volatility mean big ups and big downs for investment. More ups and downs mean more danger, but also maybe more meat for hunt.")
 
 	# st.subheader('Sharpe Ratio: {}'.format(sharpe_ratio.round(2)))
-	st.markdown(''' ### Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
-	wat_dis = st.expander("wat dis??")
-	wat_dis.caption("Bigger number good, smaller number bad. Sharpe big, risk go away.")
-	wat_dis.caption(r"""
+    st.markdown(''' ### Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
+    wat_dis = st.expander("wat dis??")
+    wat_dis.caption("Bigger number good, smaller number bad. Sharpe big, risk go away.")
+    wat_dis.caption(r"""
 			$$
 		\frac{R_p - R_f}{\sigma_p}
 		$$
@@ -256,18 +258,18 @@ if results:
 		- $\sigma_p$ is the standard deviation of the portfolio returns
 		""")
 	
-	st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr.round(2)))
-	hmm = st.expander("hmm??")
-	hmm.caption('''Correlation shows how stocks move together, more together
+    st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr.round(2)))
+    hmm = st.expander("hmm??")
+    hmm.caption('''Correlation shows how stocks move together, more together
 	*(larger correlation number)* means more risk. Spread out stocks *(smaller correlation number)*
 	less risk, like having different tools for different jobs.''')
-	hmm.caption('''
+    hmm.caption('''
 	- A correlation of 1 = you are comparing the same stock to itself, so it is 100% correlated.
 	- A correlation of 0 = you are comparing two stocks that are not correlated at all.
 	- A correlation of -1 = you are comparing two stocks that are negatively correlated, meaning that when one goes up, the other goes down.
 	''')
 	# #Combine the 4 performance expectations into a table to pass through to chat gpt
-	performance = pd.DataFrame({
+    performance = pd.DataFrame({
 		'Expected Annual Return': [expected_annual_return*100], 
 		'Annual Volatility': [annual_volatility*100], 
 		'Sharpe Ratio': [sharpe_ratio], 
@@ -276,11 +278,11 @@ if results:
 	# st.dataframe(performance)__this code used for testing
 
 	# Optimized Portfolio: Cumulative Returns
-	fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
-	fig.update_yaxes(title_text='$ Amount')
-	st.plotly_chart(fig)
-	st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
-	st.markdown("""---""")
+    fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
+    fig.update_yaxes(title_text='$ Amount')
+    st.plotly_chart(fig)
+    st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
+    st.markdown("""---""")
 
 show_more = st.checkbox('More Deeeetzz')
 if show_more:
