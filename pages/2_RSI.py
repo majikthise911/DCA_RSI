@@ -54,6 +54,12 @@ for ticker in tickers:
     # Add RSI to dataframe
     rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
 
+###########################################################################################################################
+# Save tickers to SessionState
+if 'tickers' not in st.session_state:
+    st.session_state.tickers = rsi_df
+###########################################################################################################################
+
 # Display RSI dataframe at the top of the page
 st.write(rsi_df)
 

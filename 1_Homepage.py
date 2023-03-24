@@ -127,9 +127,6 @@ def plot_efficient_frontier_and_max_sharpe(mu, S): # mu is expected returns, S i
 	ax.legend()
 	return fig
 
-
-
-
 # The code to get stock prices using yfinance is below and in a try/except block because it sometimes fails and we need to catch the error
 # the try block will try to run the code in the try block. If it fails, it will run the code in the except block
 # the except block will run if the code in the try block fails
