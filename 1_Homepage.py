@@ -279,8 +279,6 @@ for ticker in tickers:
     figg.add_hline(y=overbought, line_dash="dash", annotation_text="Overbought", 
                   annotation_position="top right", line_color="red")
 
-st.plotly_chart(figg)
-
 #####################################################################################################################################################
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
