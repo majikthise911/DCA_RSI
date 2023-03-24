@@ -279,8 +279,6 @@ if results:
         
 #################################################3/24/23##########################################################################
 
-st.markdown("""---""")
-
 pe = st.checkbox('Performance Expectations')
 if pe:
     st.header('Performance Expectations:')
