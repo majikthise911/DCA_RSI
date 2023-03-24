@@ -45,7 +45,6 @@ if 'start_date' not in st.session_state:
 else:
     start_date = st.session_state.start_date
 
-
 # Create empty dataframe to store RSI data
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
@@ -67,6 +66,7 @@ if 'tickers' not in st.session_state:
 ###########################################################################################################################
 
 # Display RSI dataframe at the top of the page
+st.markdown('## RSI')
 st.write(rsi_df)
 
 # Loop through tickers and plot RSI
