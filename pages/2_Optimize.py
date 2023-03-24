@@ -164,21 +164,6 @@ try:
 	for ticker, weight in weights.items():
 		stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
 
-	# Download the weights_df dataframe as a csv file using a button
-	# @st.cache # this is a decorator that caches the function so that it doesn't have to be rerun every time the app is run
-	# def convert_df(weights_df): # this function converts the weights_df dataframe to a csv file
-	# # code to create or retrieve the weights_df dataframe goes here
-	# 	return weights_df.to_csv().encode('utf-8')
-	# csv = convert_df(weights_df) # assign the output of the convert_df function to a variable called csv
-
-	# st.download_button( # this creates a download button
-	# label="Download Optimized Weights as CSV",
-	# data=csv,
-	# file_name='weights_df.csv',
-	# mime='text/csv')
-	# st.markdown("""---""")
-	st.write(weights)
-
 except Exception as e:
     logging.exception('An error occurred: %s', str(e))
 #___________________________________________2/2/23 _________________________________________________________
@@ -309,49 +294,40 @@ if show_more:
 	st.write(logging.exception(''))
 	st.markdown("""---""")
 
-# the below code is not needed but I'm leaving it here in case we want to use it later
-# it splits the tickers_string into a list of tickers and then iterates through the list 
-# to display each ticker on a new line
-# tickers_list = tickers_string.split(',')
-# for ticker in tickers_list:
-# 	st.write(ticker)
-# st.write('\n'.join(tickers_string))
-# write code to display tickers_string with each asset on a new line
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^2/2/23 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#################################################################################################################################
+# #################################################################################################################################
 
-GPT_says = st.checkbox('AI, WHAT DOES ALL THIS MEAN? :crystal_ball: ')
-if GPT_says:
-# Display the weights_df dataframe
-	report_title = " AI Generated Report  "  
-	# Specify font to be inconsolata
-	report_icon = ":crystal_ball:" # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
-	st.header('Summary')
-	st.title(report_icon + " " + report_title + " " + report_icon)
-	st.write('(give it a moment to generate response)')
+# GPT_says = st.checkbox('AI, WHAT DOES ALL THIS MEAN? :crystal_ball: ')
+# if GPT_says:
+# # Display the weights_df dataframe
+# 	report_title = " AI Generated Report  "  
+# 	# Specify font to be inconsolata
+# 	report_icon = ":crystal_ball:" # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
+# 	st.header('Summary')
+# 	st.title(report_icon + " " + report_title + " " + report_icon)
+# 	st.write('(give it a moment to generate response)')
 
-	# Get the api key from the .env file
-	openai.api_key = os.getenv("OPENAI_API_KEY")
+# 	# Get the api key from the .env file
+# 	openai.api_key = os.getenv("OPENAI_API_KEY")
 
-	# Call GPT-3 to generate summary
-	prompt = f'''write a report on the {weights_df} dataframe and the {performance} metrics of the dataframe. 
-	Please provide your information using markdown labeled sub-headings and bullet points for each block of text.
-	Explain the weights assigned to each asset and why they were assigned those weights. 
-	Discuss the Sharpe ratio and correlation in {performance}.
-	Compare the optimized portfolio to the S&P 500 and discuss the differences.
-	Explain the expected returns, volatility in {performance}, and best time horizon for the portfolio.
-	'''
-	response = openai.Completion.create(
-		model="text-davinci-003", 
-		prompt= prompt,
-		temperature=.7,
-		max_tokens=1000, # the tokens are the max number of words. 
-		top_p=1.0,
-		frequency_penalty=0.0,
-		presence_penalty=0.0
-	)
-	resp = (f"\n {response['choices'][0]['text']}")
-	st.markdown(resp)
-#################################################################################################################################
+# 	# Call GPT-3 to generate summary
+# 	prompt = f'''write a report on the {weights_df} dataframe and the {performance} metrics of the dataframe. 
+# 	Please provide your information using markdown labeled sub-headings and bullet points for each block of text.
+# 	Explain the weights assigned to each asset and why they were assigned those weights. 
+# 	Discuss the Sharpe ratio and correlation in {performance}.
+# 	Compare the optimized portfolio to the S&P 500 and discuss the differences.
+# 	Explain the expected returns, volatility in {performance}, and best time horizon for the portfolio.
+# 	'''
+# 	response = openai.Completion.create(
+# 		model="text-davinci-003", 
+# 		prompt= prompt,
+# 		temperature=.7,
+# 		max_tokens=1000, # the tokens are the max number of words. 
+# 		top_p=1.0,
+# 		frequency_penalty=0.0,
+# 		presence_penalty=0.0
+# 	)
+# 	resp = (f"\n {response['choices'][0]['text']}")
+# 	st.markdown(resp)
+# #################################################################################################################################
 
 
