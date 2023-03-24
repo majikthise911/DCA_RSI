@@ -41,17 +41,28 @@ st.write(rsi_df)
 # Loop through tickers and calculate RSI
 for ticker in tickers:
 
-
     # Get historical price data
     stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
 
     # Calculate RSI
     stock_data['RSI'] = talib.RSI(stock_data['Adj Close'], timeperiod=14)
 
+    # Define oversold and overbought RSI ranges
+    oversold = 30
+    overbought = 70
+
     # Plot RSI over time using Plotly Express
     fig = px.line(stock_data, x=stock_data.index, y='RSI', title=ticker + ' RSI')
     fig.update_xaxes(title_text='Date')
     fig.update_yaxes(title_text='RSI')
-    st.plotly_chart(fig)
 
+    # Add lower boundary line for oversold RSI range
+    fig.add_hline(y=oversold, line_dash="dash", annotation_text="Oversold", 
+                  annotation_position="bottom right", line_color="red")
+
+    # Add upper boundary line for overbought RSI range
+    fig.add_hline(y=overbought, line_dash="dash", annotation_text="Overbought", 
+                  annotation_position="top right", line_color="red")
+
+    st.plotly_chart(fig)
 
