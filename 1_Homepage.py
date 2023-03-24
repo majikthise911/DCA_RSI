@@ -210,25 +210,20 @@ st.caption(':point_down: Check any of the boxes below to see more details about 
 
 results = st.checkbox('Detailed Results')
 if results:
-    # Display pie chart created below 
+	# Display pie chart created below 
 
-    # Tables of weights and amounts
-    col1, col2, col3 = st.columns(3)
+	# Tables of weights and amounts
+    col1, col2 = st.columns(2)
     with col1:
-        # display the weights_df dataframe
+		# display the weights_df dataframe
         st.markdown('''#### WEIGHTS 
-                    (must add up to 1) ''')
+					(must add up to 1) ''')
         st.dataframe(weights_df)
-
+		
     with col2:
         st.markdown(f'''#### BUY THIS AMOUNT 
-                    (must add up to $ {amount}) ''')
+					(must add up to $ {amount}) ''')
         st.dataframe(amounts_sorted)
-
-    with col3:
-        st.markdown('''#### RSI
-                    ''')
-        st.dataframe(st.session_state.rsi_df)
     
 	# Create a pie chart of the amounts_sorted dataframe
 
