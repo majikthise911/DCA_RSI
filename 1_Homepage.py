@@ -304,7 +304,7 @@ if results:
     with col3:
         st.markdown(f'''####  RSI
                         oversold <= 30, overbought >= 70''')
-        rsi_df_sorted = rsi_df.sort_values('RSI')
+        rsi_df_sorted = rsi_df.sort_values('RSI', ascending=True)
         st.dataframe(rsi_df_sorted)
     
 #################################################3/24/23##########################################################################
