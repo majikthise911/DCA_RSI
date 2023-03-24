@@ -72,8 +72,8 @@ st.caption('''*Rule of thumb is to use 5 years of data for backtesting __OR__ th
 col1, col2 = st.columns(2)  # split the screen into two columns. columns(2) says split the screen into two columns
 							# if said columns(1,2) then the first column would be 1/3 of the screen and the second column would be 2/3 of the screen
 with col1:
-	start_date = st.date_input("Start Date",datetime(2020, 1, 1))
-            # Save tickers to SessionState
+    start_date = st.date_input("Start Date", datetime(2020, 1, 1))
+    st.session_state.start_date = start_date  # Save start_date to session state
 
 	
 with col2:
