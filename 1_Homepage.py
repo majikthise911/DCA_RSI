@@ -55,11 +55,12 @@ st.caption(''' Enter tickers separated by commas WITHOUT spaces, e.g. "TSLA,ETH-
 tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
 tickers = tickers_string.split(',')
 
-########################################################################################################################################################
+#################################################3/24/23##########################################################################
 # Save tickers to SessionState
 if 'tickers' not in st.session_state:
     st.session_state.tickers = tickers
-########################################################################################################################################################
+#################################################3/24/23##########################################################################
+
 st.markdown("""---""")
 
 # 3. How Long?
@@ -206,8 +207,7 @@ st.markdown(f''' ####  If you would have invested :green[$ *{amount:,.2f}*] in t
 #### it would be worth :green[$ *{previous_date_value:,.2f}*] today. :eyes: ''')
 st.markdown("""---""")
 
-#####################################################################################################################################################
-
+#################################################3/24/23##########################################################################
 rsi_window = st.sidebar.slider('RSI Window', 1, 200, 14)
 
 
@@ -246,11 +246,12 @@ for ticker in tickers:
     # Add RSI to dataframe
     rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
 
-###########################################################################################################################
+#################################################3/24/23##########################################################################
 # Save tickers to SessionState
 if 'tickers' not in st.session_state:
     st.session_state.tickers = rsi_df
-###########################################################################################################################
+#################################################3/24/23##########################################################################
+
 
 # Display RSI dataframe at the top of the page
 # st.write(rsi_df)
@@ -279,7 +280,7 @@ for ticker in tickers:
     figg.add_hline(y=overbought, line_dash="dash", annotation_text="Overbought", 
                   annotation_position="top right", line_color="red")
 
-#####################################################################################################################################################
+#################################################3/24/23##########################################################################
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
 
@@ -301,12 +302,14 @@ if results:
         st.dataframe(amounts_sorted)
     
     with col3:
-        st.markdown(f'''#### RSI
-                     oversold if RSI <= 30, overbought if RSI >= 70''')
-        st.dataframe(rsi_df)
+        st.markdown(f'''####  RSI
+                        oversold <= 30, overbought >= 70''')
+        rsi_df_sorted = rsi_df.sort_values('RSI')
+        st.dataframe(rsi_df_sorted)
     
-	# Create a pie chart of the amounts_sorted dataframe
+#################################################3/24/23##########################################################################
 
+	# Create a pie chart of the amounts_sorted dataframe
     st.header('Performance Expectations:')
 
 	# st.subheader('Expected annual return: {}%'.format((expected_annual_return*100).round(2)))
