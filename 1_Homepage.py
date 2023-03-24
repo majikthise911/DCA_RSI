@@ -302,11 +302,9 @@ if results:
         st.dataframe(amounts_sorted)
     
     with col3:
-        st.markdown(f'''####  RSI
-                    oversold <= 30, overbought >= 70''')
-        rsi_df = rsi_df.reset_index().drop(columns='index')
-        st.dataframe(rsi_df.style.set_properties(**{'text-align': 'center'}), height=600, width=800)
-
+        st.markdown(f'''<h3 style="text-align:center;">RSI</h3>
+                        <p style="text-align:center;">Oversold <= 30, Overbought >= 70</p>''', unsafe_allow_html=True)
+        st.dataframe(rsi_df.style.hide_index())
 
 
     
