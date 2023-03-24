@@ -1,48 +1,57 @@
+import yfinance as yf
+import pandas as pd
+import numpy as np
+import talib
+import datetime as dt
+import plotly.express as px
 import streamlit as st
-import openai
-import os
+
+# Define function to get RSI for a given ticker
+def get_rsi(ticker, start_date):
+    # Get historical price data
+    stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
+    # Calculate RSI
+    stock_data['RSI'] = talib.RSI(stock_data['Adj Close'], timeperiod=14)
+
+    # Return last RSI value
+    return stock_data['RSI'][-1]
+
+# Get list of tickers from user input
+tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
+tickers = tickers_string.split(',')
+
+# Get start date from user input
+start_date = st.date_input("Start Date", dt.date(2021, 1, 1))
+
+# Create empty dataframe to store RSI data
+rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
+
+# Loop through tickers and calculate RSI
+for ticker in tickers:
+    # Calculate RSI
+    rsi = get_rsi(ticker, start_date)
+
+    # Add RSI to dataframe
+    rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': rsi}, ignore_index=True)
+
+# Display RSI dataframe at the top of the page
+st.write(rsi_df)
 
 
-# Hide Streamlit Menu and Footer
-hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# Loop through tickers and calculate RSI
+for ticker in tickers:
 
-report_icon = ":crystal_ball:" # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
-st.title(report_icon + " " + 'Discover' + " " + report_icon)
-report_title = " Top 10s  "  
-st.header(report_title)
-# specify font to be inconsolata
-st.write('(give it a few seconds to load)')
 
-# # get the api key from the .env file
-openai.api_key = os.getenv("OPENAI_API_KEY")
+    # Get historical price data
+    stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
 
-# Create the dataframe
-# fig_cum_returns_optimized = st.sidebar.selectbox("Dataframe", fig_cum_returns_optimized)
-# Call GPT-3 to generate summary
-prompt = f''' First: List the top most interesting things you have discovered about the stock market, cryptocurrencies, or anything else you are interested in.
-Next: Create 3 tables with the following questions label them top 10 cryptocurrencies by market cap with the lowest hourly rsi, top 10 stocks by market cap with the lowest hourly rsi, and top 10 cryptocurrencies that have a market cap of $100,000,000 or below right now that are most likely to succeed in the long term and why.
-1. What are the top 10 cryptocurrencies by market cap with the lowest hourly rsi currently? 
-2. What are the top 10 stocks by market cap with the lowest hourly rsi currently? 
-3. What are the top 10 cryptocurrencies that have a market cap of $100,000,000 or below right now that are most likely to succeed in the long term and why?
-'''
-response = openai.Completion.create(
-	model="text-davinci-003", 
-	prompt= prompt,
-	temperature=.7,
-	max_tokens=1000, # the tokens are the max number of words. 
-	top_p=1.0,
-	frequency_penalty=0.0,
-	presence_penalty=0.0
-)
-resp = (f"\n {response['choices'][0]['text']}")
-#st.markdown(f"## Summary of Optimized Portfolio \n {response['choices'][0]['text']}")
-st.markdown(resp)
+    # Calculate RSI
+    stock_data['RSI'] = talib.RSI(stock_data['Adj Close'], timeperiod=14)
 
-# TODO: have to feed data to gpt 3 to generate the tables. currently it is using old data 
+    # Plot RSI over time using Plotly Express
+    fig = px.line(stock_data, x=stock_data.index, y='RSI', title=ticker + ' RSI')
+    fig.update_xaxes(title_text='Date')
+    fig.update_yaxes(title_text='RSI')
+    st.plotly_chart(fig)
+
+

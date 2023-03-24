@@ -70,63 +70,6 @@ with col2:
 	end_date = st.date_input("End Date") # it defaults to current date
 st.markdown("""---""")
 
-# TODO: Instead of entering start and end dates, have them enter 
-# number of years the user plans on holding the portfolio - then have the app go back that many years for the backtesting
-# st.markdown('''### 3. How long?
-# Enter number of years you plan on hodling.''')
-# years = st.number_input('Years', min_value=1, max_value=30, value=1, step=1)
-# st.write('You have entered: ', years)
-
-# st.markdown('''### 3. How long?
-# Enter number of years you plan on holding.''')
-# years = st.number_input('Years', min_value=1, max_value=30, value=1, step=1)
-# st.write('You have entered: ', years)
-# Write the code that takes the number of years and converts it to a start and end date
-# it should do this by taking the current date and subtracting the number of years from it
-
-
-
-# today = int(datetime.now().date().strftime("%s"))
-# st.write(today)
-# end_date = today
-# start_date = today - 365*years
-# st.write(start_date, end_date)
-# datetime_object = datetime.datetime.fromtimestamp(end_date)
-# st.write(datetime_object)
-
-# # 4. RISK - TODO: REMOVE THIS SECTION
-# st.markdown('''### 4. Risk?
-# How much risk are you willing to take?''')
-# risk_tolerance = st.selectbox('Risk Tolerance', ('0.0 - Responsible', '1.0 - Maveric', '2.0 - Degenerate', '3.0 - Insane')) 
-# if risk_tolerance == '0.0 - Responsible':
-# 	risk_tolerance = 0.0
-# 	st.write('You have elected to be Responsible')
-# elif risk_tolerance == '1.0 - Maveric':
-# 	risk_tolerance = 1.0
-# 	st.write('You have elected to be a Maveric')
-# elif risk_tolerance == '2.0 - Degenerate':
-# 	risk_tolerance = 2.0
-# 	st.write('You may be a Degenerate')
-# elif risk_tolerance == '3.0 - Insane':
-# 	risk_tolerance = 3.0
-# 	st.write('You may be Insane')
-# else:
-# 	st.write('Invalid Selection')
-
-# # convert user input to actual risk free rate
-# if risk_tolerance == 0.0:
-# 	risk_free_rate = 0.035
-# elif risk_tolerance == 1.0:
-# 	risk_free_rate = 0.02
-# elif risk_tolerance == 2.0:
-# 	risk_free_rate = 0.01
-# elif risk_tolerance == 3.0:
-# 	risk_free_rate = 0.000
-# else:
-# 	st.write('Invalid Selection')
-
-# st.write('Risk Free Rate: ', risk_free_rate)
-# st.markdown("""---""")
 risk_free_rate = 0.02
 
 # Hide Streamlit Menu and Footer
@@ -412,26 +355,3 @@ if GPT_says:
 #################################################################################################################################
 
 
-# A+ issues: 
-# TODO: [ x ] add input for risk tolerance (should be little, medium, high that equates to numbers in the backend)
-# TODO: [ x ] add toggles so that all other charts can be hidden and only the optimized portfolio chart is shown
-# TODO: pipe live data into discover page 
-# TODO: [ x ] investigate numbers in Optimized Portfolio Amounts column in stocks_df2 dataframe
-
-# Nice to have issues:
-# TODO: add ability for users to look at source code if they want 
-# TODO: add ability to drag pie chart slices to change weights and see how it affects the optimized portfolio
-# TODO: add a santiment sentiment analysis section for each asset 
-# TODO: Add a button to refresh the page+
-# TODO: add microcap stocks and cryptos section that are most likely to succeed in the future
-# TODO: add daily top 10 stocks and cryptos with lowest rsi and highest rsi
-# TODO: add section where you can input trades and get a report on good or badness of trade? 
-# TODO: *********find a way to create support and resistance indicators with ai - ability to put in an asset and have gpt draw support and resistance lines 
-# TODO: ADD wale watchers section
-# TODO: Add a button to download the optimized portfolio weights - Completed
-# TODO: Change how the optimized portfolio list is sorted. Sort by weights instead of alphabetically - Completed
-# TODO: Add section to have GPT-3 generate a stock portfolio
-# TODO: Add section to have GPT-3 generate a report on the portfolio
-# TODO: Add button to each graph that shows the code/math to generate the graph
-#		Maybe find a way to integrate chat bot to explain the math/code with the chat bot that 
-# 		I already built in streamlit
