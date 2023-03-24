@@ -73,6 +73,9 @@ col1, col2 = st.columns(2)  # split the screen into two columns. columns(2) says
 							# if said columns(1,2) then the first column would be 1/3 of the screen and the second column would be 2/3 of the screen
 with col1:
 	start_date = st.date_input("Start Date",datetime(2020, 1, 1))
+            # Save tickers to SessionState
+if 'start_date' not in st.session_state:
+        st.session_state.tickers = start_date
 	
 with col2:
 	end_date = st.date_input("End Date") # it defaults to current date
