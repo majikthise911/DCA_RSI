@@ -15,6 +15,7 @@ import pandas as pd
 import datetime as dt
 import yfinance as yf # pip install yfinance
 import plotly.express as px	# pip install plotly
+import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import seaborn as sns	# pip install seaborn
 import datetime
@@ -325,13 +326,35 @@ if pe:
 		'Portfolio Correlation': [avg_corr]
 		})
 	# st.dataframe(performance)__this code used for testing
+##########################################################################################################
 
-	# Optimized Portfolio: Cumulative Returns
-    fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
+        # Optimized Portfolio: Cumulative Returns
+    # create trace for portfolio amounts
+    portfolio_trace = go.Scatter(x=stocks_df2['Time'], y=stocks_df2['Optimized Portfolio Amounts'], name='Optimized Portfolio')
+
+    # create trace for benchmark (SPY)
+    spy_trace = go.Scatter(x=stocks_df2['Time'], y=stocks_df2['SPY Amounts'], name='SPY')
+
+    # create figure and add both traces
+    fig = go.Figure(data=[portfolio_trace, spy_trace])
+
+    # update y-axis title
     fig.update_yaxes(title_text='$ Amount')
+
+    # update chart title
+    fig.update_layout(title_text='Optimized Portfolio vs. SPY: Cumulative Returns')
+
+    # add caption and horizontal line for benchmark
+    fig.add_annotation(y=1, xref="paper", x=0.05, yref="y", showarrow=False, text="SPY", font=dict(size=12))
+    fig.add_shape(type="line", x0=stocks_df2['Time'].iloc[0], y0=stocks_df2['SPY Amounts'].iloc[0],
+                x1=stocks_df2['Time'].iloc[-1], y1=stocks_df2['SPY Amounts'].iloc[-1], line=dict(color='red', width=1, dash='dash'))
+
+    # display chart and caption
     st.plotly_chart(fig)
-    st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
+    st.caption('Click and drag a box on the graph to zoom in on a specific time period. :point_up:')
     st.markdown("""---""")
+
+##########################################################################################################
 
 show_more = st.checkbox('Correlation & Efficient Frontier')
 if show_more:
