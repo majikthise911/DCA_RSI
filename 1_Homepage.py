@@ -1,53 +1,20 @@
-import requests
 import streamlit as st
 
-page_title = "WealthWyze"
-page_icon = ":zap:"  # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
-layout = "centered"
-st.set_page_config(page_title = page_title, layout = "centered", page_icon = page_icon)
-st.title(page_title + " " + page_icon)
+st.header('How to use this app:')
+st.markdown('''
 
-# # Streamlit sidebar table of contents
-# st.sidebar.markdown('''
-# # Sections
-# - [Welcome](#welcome)
-# - [Questions](#you-may-have-some-questions)
-# - [How to use this app](#how-to-use-this-app)
-# ''', unsafe_allow_html=True)
-
-st.markdown(''' # Why does your portfolio suck?
-
-### You haven't optimized it yet! We have a solution.
-
-### Enter, WealthWyze.
-
-### We calculate and optimize your portfolio weights and show you how diversified your selections are.
+    1. Choose a start date and end date for your analysis. The time interval between the start and end date will be your time horizon that we will use to calculate the expected return and volatility of your portfolio.
+   
+    2. Choose the assets you want to include in your portfolio. 
+        - There are some assets that are populated by default just to demonstrate the app. You may add any asset you are interested in as long as it is in the correct format.
+        - The correct format for stocks is the ticker symbol in all caps separated by a comma and no spaces. 
+            - For example, if you want to include Apple, Microsoft, and Amazon in your portfolio, you would enter: AAPL,MSFT,AMZN
+        - The correct format for cryptocurrencies is token symbol followed by a - and the currency it is represented in such as USD. This should be written in all caps and separated by a comma and no spaces. 
+            - For example, if you want to include Bitcoin, Ethereum, and Dogecoin in your portfolio, you would enter: BTC-USD,ETH-USD,DOGE-USD
+    
+    3. Once you have entered the dates and assets, just click enter or click out of the text box and the app will answer all the above questions above about your portfolio.
 
 ''')
-
-# add image from "image" folder in the root directory
-st.image("image/newplot.png", use_column_width=True)
-
-# add custom css to the button that links to the next page
-button_style = st.markdown("""
-<style>
-   div.stButton    > button:first-child {
-        top: 50%;
-        left: 50%;
-        background-image: linear-gradient(#b6007a, #522886);
-        color: white;
-        padding: 20px 50px;
-        text-align: center;
-        font-size: 60px;
-        border-radius: 20px;
-        width: 20%;
-        height: 60%;
-        }
-</style>
-""", unsafe_allow_html=True)
-link = "<a href='https://wealthwyze.streamlit.app/Optimize'>Next</a>"
-if st.button("Next"):
-    st.markdown(link, unsafe_allow_html=True)
 
 # Hide Streamlit Menu and Footer
 hide_st_style = """
