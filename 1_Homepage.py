@@ -253,7 +253,7 @@ if 'tickers' not in st.session_state:
 ###########################################################################################################################
 
 # Display RSI dataframe at the top of the page
-st.write(rsi_df)
+# st.write(rsi_df)
 
 # Loop through tickers and plot RSI
 for ticker in tickers:
@@ -288,7 +288,7 @@ if results:
 	# Display pie chart created below 
 
 	# Tables of weights and amounts
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
 		# display the weights_df dataframe
         st.markdown('''#### WEIGHTS 
@@ -299,6 +299,11 @@ if results:
         st.markdown(f'''#### BUY THIS AMOUNT 
 					(must add up to $ {amount}) ''')
         st.dataframe(amounts_sorted)
+    
+    with col3:
+        st.markdown(f'''#### RSI
+                     oversold if RSI <= 30, overbought if RSI >= 70''')
+        st.dataframe(rsi_df)
     
 	# Create a pie chart of the amounts_sorted dataframe
 
