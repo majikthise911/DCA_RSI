@@ -5,6 +5,17 @@ import datetime as dt
 import plotly.express as px
 import streamlit as st
 
+
+# Hide Streamlit Menu and Footer
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # Define function to calculate RSI for a given DataFrame
 def get_rsi(data):
     delta = data['Adj Close'].diff()
