@@ -255,7 +255,7 @@ if 'tickers' not in st.session_state:
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
 
-results = st.checkbox('Detailed Results')
+results = st.checkbox('Weights & RSI')
 if results:
 	# Display pie chart created below 
 
@@ -333,7 +333,7 @@ if pe:
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
     st.markdown("""---""")
 
-show_more = st.checkbox('More Deeeetzz')
+show_more = st.checkbox('Correlation & Efficient Frontier')
 if show_more:
 
 	# add link to Correlation Matrix header that takes you to investopedia article on correlation
@@ -347,6 +347,8 @@ if show_more:
 	st.image(fig_efficient_frontier)
 	st.markdown("""---""")
 
+even_more = st.checkbox('Individual Stock Prices and Cumulative Returns')
+if even_more:
 	st.header('Individual Stock Prices and Cumulative Returns')
 	st.plotly_chart(fig_price)
 	st.markdown("""---""")
