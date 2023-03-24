@@ -275,10 +275,12 @@ if results:
                         <p style="text-align:center;">Oversold <= 30, Overbought >= 70</p>''', unsafe_allow_html=True)
         st.dataframe(rsi_df.style.hide_index())
         
-    
 #################################################3/24/23##########################################################################
-    st.markdown("""---""")
-	# Create a pie chart of the amounts_sorted dataframe
+
+st.markdown("""---""")
+
+pe = st.checkbox('Performance Expectations')
+if pe:
     st.header('Performance Expectations:')
 
 	# st.subheader('Expected annual return: {}%'.format((expected_annual_return*100).round(2)))
