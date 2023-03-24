@@ -38,7 +38,13 @@ else:
     tickers = st.session_state.tickers
 
 # Get start date from user input
-start_date = st.date_input("Start Date", dt.date(2021, 1, 1))
+# start_date = st.date_input("Start Date", dt.date(2021, 1, 1))
+
+if 'start_date' not in st.session_state:
+    st.warning('Please enter start date on the previous page.')
+else:
+    start_date = st.session_state.start_date
+
 
 # Create empty dataframe to store RSI data
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
