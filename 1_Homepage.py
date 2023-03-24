@@ -252,36 +252,6 @@ if 'tickers' not in st.session_state:
     st.session_state.tickers = rsi_df
 #################################################3/24/23##########################################################################
 
-
-# Display RSI dataframe at the top of the page
-# st.write(rsi_df)
-
-# Loop through tickers and plot RSI
-for ticker in tickers:
-    # Get historical price data
-    stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
-    # Calculate RSI
-    rsi = get_rsi(stock_data)
-
-    # Define oversold and overbought RSI ranges
-    oversold = 30
-    overbought = 70
-
-    # Plot RSI over time using Plotly Express
-    figg = px.line(x=rsi.index, y=rsi.values, title=ticker + ' RSI')
-    figg.update_xaxes(title_text='Date')
-    figg.update_yaxes(title_text='RSI')
-
-    # Add lower boundary line for oversold RSI range
-    figg.add_hline(y=oversold, line_dash="dash", annotation_text="Oversold", 
-                  annotation_position="bottom right", line_color="red")
-
-    # Add upper boundary line for overbought RSI range
-    figg.add_hline(y=overbought, line_dash="dash", annotation_text="Overbought", 
-                  annotation_position="top right", line_color="red")
-
-#################################################3/24/23##########################################################################
-
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
 
 results = st.checkbox('Detailed Results')
