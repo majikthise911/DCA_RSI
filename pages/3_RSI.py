@@ -28,8 +28,11 @@ def get_rsi(data):
     return rsi
 
 # Get list of tickers from user input
-tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
-tickers = tickers_string.split(',')
+# Import tickers from SessionState
+if 'tickers' not in st.session_state:
+    st.warning('Please enter tickers on the previous page.')
+else:
+    tickers = st.session_state.tickers
 
 # Get start date from user input
 start_date = st.date_input("Start Date", dt.date(2021, 1, 1))
