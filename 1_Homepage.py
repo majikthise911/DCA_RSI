@@ -245,8 +245,8 @@ for ticker in tickers:
 
     # Add RSI to dataframe
     rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
-    # drop index column
-    rsi_df = rsi_df.drop(columns=[0])
+    # sort the dataframe by RSI
+    rsi_df = rsi_df.sort_values(by=['RSI'], ascending=True)
 
 #################################################3/24/23##########################################################################
 # Save tickers to SessionState
