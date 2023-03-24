@@ -16,13 +16,16 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
+rsi_window = st.sidebar.slider('RSI Window', 1, 30, 14)
+
+
 # Define function to calculate RSI for a given DataFrame
 def get_rsi(data):
     delta = data['Adj Close'].diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.rolling(window=14).mean()
-    avg_loss = loss.rolling(window=14).mean()
+    avg_gain = gain.rolling(window=rsi_window).mean()
+    avg_loss = loss.rolling(window=rsi_window).mean()
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
