@@ -16,7 +16,7 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-rsi_window = st.sidebar.slider('RSI Window', 1, 30, 14)
+rsi_window = st.sidebar.slider('RSI Window', 1, 200, 14)
 
 
 # Define function to calculate RSI for a given DataFrame
