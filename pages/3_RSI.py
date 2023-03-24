@@ -1,66 +1,20 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
-# import talib
 import datetime as dt
 import plotly.express as px
 import streamlit as st
 
-####################################
-import streamlit as st
-import requests
-import os
-import sys
-import subprocess
-
-# check if the library folder already exists, to avoid building everytime you load the pahe
-if not os.path.isdir("/tmp/ta-lib"):
-
-    # Download ta-lib to disk
-    with open("/tmp/ta-lib-0.4.0-src.tar.gz", "wb") as file:
-        response = requests.get(
-            "http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz"
-        )
-        file.write(response.content)
-    # get our current dir, to configure it back again. Just house keeping
-    default_cwd = os.getcwd()
-    os.chdir("/tmp")
-    # untar
-    os.system("tar -zxvf ta-lib-0.4.0-src.tar.gz")
-    os.chdir("/tmp/ta-lib")
-    # build
-    os.system("./configure --prefix=/home/appuser/venv/")
-    os.system("make")
-    # install
-    os.system("mkdir -p /home/appuser/venv/")
-    os.system("make install")
-    os.system("ls -la /home/appuser/venv/")
-    # back to the cwd
-    os.chdir(default_cwd)
-    sys.stdout.flush()
-
-# add the library to our current environment
-from ctypes import *
-
-lib = CDLL("/home/appuser/venv/lib/libta_lib.so.0.0.0")
-# import library
-try:
-    import talib
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--global-option=build_ext", "--global-option=-L/home/appuser/venv/lib/", "--global-option=-I/home/appuser/venv/include/", "ta-lib==0.4.24"])
-finally:
-    import talib
-######################################
-
-# Define function to get RSI for a given ticker
-def get_rsi(ticker, start_date):
-    # Get historical price data
-    stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
-    # Calculate RSI
-    stock_data['RSI'] = talib.RSI(stock_data['Adj Close'], timeperiod=14)
-
-    # Return last RSI value
-    return stock_data['RSI'][-1]
+# Define function to calculate RSI for a given DataFrame
+def get_rsi(data):
+    delta = data['Adj Close'].diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=14).mean()
+    avg_loss = loss.rolling(window=14).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
 
 # Get list of tickers from user input
 tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
@@ -74,31 +28,31 @@ rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
 # Loop through tickers and calculate RSI
 for ticker in tickers:
+    # Get historical price data
+    stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
     # Calculate RSI
-    rsi = get_rsi(ticker, start_date)
+    rsi = get_rsi(stock_data)
+    last_rsi = rsi.iloc[-1]
 
     # Add RSI to dataframe
-    rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': rsi}, ignore_index=True)
+    rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
 
 # Display RSI dataframe at the top of the page
 st.write(rsi_df)
 
-
-# Loop through tickers and calculate RSI
+# Loop through tickers and plot RSI
 for ticker in tickers:
-
     # Get historical price data
     stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
-
     # Calculate RSI
-    stock_data['RSI'] = talib.RSI(stock_data['Adj Close'], timeperiod=14)
+    rsi = get_rsi(stock_data)
 
     # Define oversold and overbought RSI ranges
     oversold = 30
     overbought = 70
 
     # Plot RSI over time using Plotly Express
-    fig = px.line(stock_data, x=stock_data.index, y='RSI', title=ticker + ' RSI')
+    fig = px.line(x=rsi.index, y=rsi.values, title=ticker + ' RSI')
     fig.update_xaxes(title_text='Date')
     fig.update_yaxes(title_text='RSI')
 
@@ -111,4 +65,3 @@ for ticker in tickers:
                   annotation_position="top right", line_color="red")
 
     st.plotly_chart(fig)
-
