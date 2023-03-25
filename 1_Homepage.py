@@ -363,7 +363,7 @@ if even_more:
 
 
 st.markdown("""---""")
-st.markdown('made with love and frustration :heart: :expressionless: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
+st.markdown('Made with love and frustration :heart: :expressionless: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
 st.markdown("""---""")
 
 # #################################################################################################################################
