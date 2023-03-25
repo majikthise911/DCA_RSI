@@ -362,8 +362,10 @@ if even_more:
 	st.markdown("""---""")
 
 
-
+st.markdown("""---""")
 st.markdown('made with frustration and love :expressionless: :heart: by Jordan Clayton')
+st.markdown("""---""")
+
 # #################################################################################################################################
 
 # GPT_says = st.checkbox('AI, WHAT DOES ALL THIS MEAN? :crystal_ball: ')
