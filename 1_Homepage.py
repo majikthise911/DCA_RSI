@@ -361,7 +361,9 @@ if even_more:
 	st.write(logging.exception(''))
 	st.markdown("""---""")
 
-st.markdown('made with frustration :expressionless: by Jordan Clayton')
+
+
+st.markdown('made with frustration and love :expressionless: :heart: by Jordan Clayton')
 # #################################################################################################################################
 
 # GPT_says = st.checkbox('AI, WHAT DOES ALL THIS MEAN? :crystal_ball: ')
