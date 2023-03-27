@@ -275,7 +275,7 @@ if results:
     
     with col3:
         st.markdown(f'''<h3 style="text-align:center;">RSI</h3>
-                        <p style="text-align:center;">Oversold <= 30, Overbought >= 70</p>''', unsafe_allow_html=True)
+                        <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
         st.dataframe(rsi_df.style.hide_index())
         
 #################################################3/24/23##########################################################################
