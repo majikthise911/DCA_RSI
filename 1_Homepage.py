@@ -46,6 +46,8 @@ st.markdown('### 1. How Much?')
 # 1. AMOUNT
 # Enter investment amount and display it. It must be an integer not a string
 amount = st.number_input('Investment Amount $', min_value=0, max_value=1000000, value=1000, step=100)
+# Save amount to SessionState
+st.session_state.amount = amount
 # st.write('You have entered: ', amount)
 st.markdown("""---""")
 
@@ -58,8 +60,8 @@ tickers = tickers_string.split(',')
 
 #################################################3/24/23##########################################################################
 # Save tickers to SessionState
-if 'tickers' not in st.session_state:
-    st.session_state.tickers = tickers
+# Save tickers to SessionState
+st.session_state.tickers = tickers
 #################################################3/24/23##########################################################################
 
 st.markdown("""---""")
@@ -231,6 +233,7 @@ if 'tickers' not in st.session_state:
     st.warning('Please enter tickers on the previous page.')
 else:
     tickers = st.session_state.tickers
+    
 
 # Create empty dataframe to store RSI data
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
