@@ -45,7 +45,10 @@ st.sidebar.markdown('''
 st.markdown('### 1. How Much?')
 # 1. AMOUNT
 # Enter investment amount and display it. It must be an integer not a string
-amount = st.number_input('Investment Amount $', min_value=0, max_value=1000000, value=1000, step=100)
+if 'amount' not in st.session_state:
+    st.session_state.amount = 1000
+
+amount = st.number_input('Investment Amount $', min_value=0, max_value=1000000, value=st.session_state.amount, step=100)
 # Save amount to SessionState
 st.session_state.amount = amount
 # st.write('You have entered: ', amount)
@@ -75,12 +78,18 @@ st.caption('''*Rule of thumb is to use 5 years of data for backtesting __OR__ th
 col1, col2 = st.columns(2)  # split the screen into two columns. columns(2) says split the screen into two columns
 							# if said columns(1,2) then the first column would be 1/3 of the screen and the second column would be 2/3 of the screen
 with col1:
-    start_date = st.date_input("Start Date", datetime(2020, 1, 1))
-    st.session_state.start_date = start_date  # Save start_date to session state
+	if 'start_date' not in st.session_state:
+		st.session_state.start_date = datetime(2020, 1, 1)
 
-	
+	start_date = st.date_input("Start Date", st.session_state.start_date)
+
+
 with col2:
-	end_date = st.date_input("End Date") # it defaults to current date
+    if 'end_date' not in st.session_state:
+        st.session_state.end_date = datetime.today()
+
+    end_date = st.date_input("End Date", st.session_state.end_date)
+
 st.markdown("""---""")
 
 risk_free_rate = 0.02
