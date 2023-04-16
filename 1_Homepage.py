@@ -203,18 +203,21 @@ except Exception as e:
     logging.exception('An error occurred: %s', str(e))
 #___________________________________________2/2/23 _________________________________________________________
 
-stocks_df['Optimized Portfolio Amounts'] = 0
-stocks_df2 = stocks_df
-stocks_df2['Time'] = stocks_df2.index
-for ticker, weight in weights.items():
-	stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
+if 'stocks_df' in locals():
+    stocks_df['Optimized Portfolio Amounts'] = 0
+    stocks_df2 = stocks_df
+    stocks_df2['Time'] = stocks_df2.index
+    for ticker, weight in weights.items():
+        stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
+    # # This code is to display how much the initial investment would be worth today
+    last_index = len(stocks_df2) - 1
+    for i in range(last_index, -1, -1):
+        if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
+            previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
+            break
+else:
+    st.error("Failed to retrieve data. Please check your tickers and try again.")
 
-# # This code is to display how much the initial investment would be worth today
-last_index = len(stocks_df2) - 1
-for i in range(last_index, -1, -1):
-    if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
-        previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
-        break
 
 weights_df['weights'] = (weights_df['weights']).round(2)
 weights_df = weights_df.sort_values(by=['weights'], ascending=False)
