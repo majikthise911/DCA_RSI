@@ -184,9 +184,20 @@ try:
 
 	# Calculate returns of portfolio with optimized weights by multiplying the 
 	# weights by the returns of each stock and saving it in a new column of the stocks_df dataframe
-	stocks_df['Optimized Portfolio'] = 0
-	for ticker, weight in weights.items():
-		stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
+	# stocks_df['Optimized Portfolio'] = 0
+	# for ticker, weight in weights.items():
+	# 	stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
+                
+
+
+	if 'weights' in locals():
+		stocks_df['Optimized Portfolio'] = 0
+		for ticker, weight in weights.items():
+			stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
+	else:
+		st.error("An error occurred while retrieving stock data. Please check the tickers and try again.")
+
+
 
 except Exception as e:
     logging.exception('An error occurred: %s', str(e))
