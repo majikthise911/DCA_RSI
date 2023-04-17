@@ -10,8 +10,8 @@ from pypfopt import objective_functions
 import os	# for os.path.join
 import copy	# for deepcopy
 
-from dotenv import load_dotenv # comment out for deployment 
-load_dotenv() # comment out for deployment 
+# from dotenv import load_dotenv # comment out for deployment 
+# load_dotenv() # comment out for deployment 
 
 # import openai # pip install openai
 import numpy as np
