@@ -9,7 +9,11 @@ from pypfopt import plotting
 from pypfopt import objective_functions
 import os	# for os.path.join
 import copy	# for deepcopy
-import openai # pip install openai
+
+from dotenv import load_dotenv # comment out for deployment 
+load_dotenv() # comment out for deployment 
+
+# import openai # pip install openai
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -62,7 +66,6 @@ tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-U
 tickers = tickers_string.split(',')
 
 #################################################3/24/23##########################################################################
-# Save tickers to SessionState
 # Save tickers to SessionState
 st.session_state.tickers = tickers
 #################################################3/24/23##########################################################################
@@ -142,7 +145,9 @@ def plot_efficient_frontier_and_max_sharpe(mu, S): # mu is expected returns, S i
 	ax.legend()
 	return fig
 
+weights_df = {}
 weights = {}
+
 
 # The code to get stock prices using yfinance is below and in a try/except block because it sometimes fails and we need to catch the error
 # the try block will try to run the code in the try block. If it fails, it will run the code in the except block
@@ -181,45 +186,71 @@ try:
 	expected_annual_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
 	weights_df = pd.DataFrame.from_dict(weights, orient = 'index')
 	weights_df.columns = ['weights']
+        
+##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-	# Calculate returns of portfolio with optimized weights by multiplying the 
-	# weights by the returns of each stock and saving it in a new column of the stocks_df dataframe
-	# stocks_df['Optimized Portfolio'] = 0
-	# for ticker, weight in weights.items():
-	# 	stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
-                
+	stocks_df['Optimized Portfolio'] = 0
+	for ticker in weights.keys():
+		weight = weights[ticker]
+		stocks_df['Optimized Portfolio'] = stocks_df[ticker]*weight
+            
 
-
-	if 'weights' in locals():
-		stocks_df['Optimized Portfolio'] = 0
-		for ticker, weight in weights.items():
-			stocks_df['Optimized Portfolio'] += stocks_df[ticker]*weight
-	else:
-		st.error("An error occurred while retrieving stock data. Please check the tickers and try again.")
-
-
-
+	# st.write('stocks_df1')
+	# st.write(stocks_df)
+	# # send stocks_df to csv
+	# stocks_df.to_csv('stocks_df.csv')
+        
 except Exception as e:
     logging.exception('An error occurred: %s', str(e))
-#___________________________________________2/2/23 _________________________________________________________
 
-if 'stocks_df' in locals():
-    stocks_df['Optimized Portfolio Amounts'] = 0
-    stocks_df2 = stocks_df
-    stocks_df2['Time'] = stocks_df2.index
-    for ticker, weight in weights.items():
-        stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
-    # # This code is to display how much the initial investment would be worth today
-    last_index = len(stocks_df2) - 1
-    for i in range(last_index, -1, -1):
-        if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
-            previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
-            break
-else:
-    st.error("Failed to retrieve data. Please check your tickers and try again.")
+##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+# if 'stocks_df' in locals(): # psuedo code: if stocks_df exists, then do the following
+#     stocks_df['Optimized Portfolio Amounts'] = 0 # create a new column in the stocks_df dataframe called "Optimized Portfolio Amounts" and set it equal to 0
+#     stocks_df2 = stocks_df # create a new dataframe called stocks_df2 and set it equal to stocks_df
+#     stocks_df2['Time'] = stocks_df2.index # create a new column in stocks_df2 called "Time" and set it equal to the index of stocks_df2
+#     for ticker, weight in weights.items(): # for each ticker and weight in the weights dictionary, .items() returns a list of tuples. 
+#         stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
+#     # # This code is to display how much the initial investment would be worth today
+#     last_index = len(stocks_df2) - 1
+#     for i in range(last_index, -1, -1):
+#         if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
+#             previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
+#             break
+# else:
+#     st.error("Failed to retrieve data. Please check your tickers and try again.")
+
+stocks_df['Optimized Portfolio Amounts'] = 0 # create a new column in the stocks_df dataframe called "Optimized Portfolio Amounts" and set it equal to 0
+stocks_df2 = stocks_df # create a new dataframe called stocks_df2 and set it equal to stocks_df
+stocks_df2['Time'] = stocks_df2.index # create a new column in stocks_df2 called "Time" and set it equal to the index of stocks_df2weights_df['weights'] = (weights_df['weights']).round(2)
 
 
-weights_df['weights'] = (weights_df['weights']).round(2)
+for ticker, weight in weights.items(): # for each ticker and weight in the weights dictionary, .items() returns a list of tuples. 
+	stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
+        
+last_index = len(stocks_df2) - 1
+for i in range(last_index, -1, -1):
+      if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
+        previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
+        break
+
+# display just the value of 
+
+# DATAFRAME CHECK - REMOVE BEFORE DEPLOYMENT
+# st.write('stocks_df')
+# st.write(stocks_df)
+# st.write('weights')
+# st.write(weights)
+# st.write('weights_df')      
+# st.write(weights_df)
+# weights_df.to_csv('weights_df.csv')
+# st.write('stocks_df2')
+# st.write(stocks_df2)
+# # display the type of data in the stocks_df2 dataframe
+# st.write('stocs_df2.dtypes')
+# st.write(stocks_df2.dtypes)
+##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
 weights_df = weights_df.sort_values(by=['weights'], ascending=False)
 # display the weights_df dataframe multiplied by the amount of money invested
 amounts = weights_df*amount
@@ -232,14 +263,13 @@ st.header('Results')
 fig = px.pie(amounts_sorted, values='$ amounts', names=amounts_sorted.index)
 st.plotly_chart(fig)
 st.markdown("""---""")
+##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# st.markdown(f''' ####  If you would have invested :green[$ *{amount:,.2f}*] in the Optimized Portfolio on :blue[*{start_date}*]
+# #### it would be worth :green[$ *{previous_date_value:,.2f}*] today. :eyes: ''')
+# st.markdown("""---""")
+##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-st.markdown(f''' ####  If you would have invested :green[$ *{amount:,.2f}*] in the Optimized Portfolio on :blue[*{start_date}*]
-#### it would be worth :green[$ *{previous_date_value:,.2f}*] today. :eyes: ''')
-st.markdown("""---""")
-
-#################################################3/24/23##########################################################################
 rsi_window = st.sidebar.slider('RSI Window', 1, 200, 14)
-
 
 # Define function to calculate RSI for a given DataFrame
 def get_rsi(data):
@@ -259,7 +289,6 @@ if 'tickers' not in st.session_state:
 else:
     tickers = st.session_state.tickers
     
-
 # Create empty dataframe to store RSI data
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
@@ -276,11 +305,9 @@ for ticker in tickers:
     # sort the dataframe by RSI
     rsi_df = rsi_df.sort_values(by=['RSI'], ascending=True)
 
-#################################################3/24/23##########################################################################
 # Save tickers to SessionState
 if 'tickers' not in st.session_state:
     st.session_state.tickers = rsi_df
-#################################################3/24/23##########################################################################
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
 
@@ -306,8 +333,6 @@ if results:
                         <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
         st.dataframe(rsi_df.style.hide_index())
         
-#################################################3/24/23##########################################################################
-
 pe = st.checkbox('Performance Expectations')
 if pe:
     st.header('Performance Expectations:')
@@ -336,7 +361,7 @@ if pe:
 		- $\sigma_p$ is the standard deviation of the portfolio returns
 		""")
 	
-    st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr.round(2)))
+    st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr))
     hmm = st.expander("hmm??")
     hmm.caption('''Correlation shows how stocks move together, more together
 	*(larger correlation number)* means more risk. Spread out stocks *(smaller correlation number)*
@@ -353,8 +378,6 @@ if pe:
 		'Sharpe Ratio': [sharpe_ratio], 
 		'Portfolio Correlation': [avg_corr]
 		})
-	# st.dataframe(performance)__this code used for testing
-##########################################################################################################
 
 	# Optimized Portfolio: Cumulative Returns
     fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
@@ -362,9 +385,7 @@ if pe:
     st.plotly_chart(fig)
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
     st.markdown("""---""")
-
-##########################################################################################################
-
+    
 show_more = st.checkbox('Correlation & Efficient Frontier')
 if show_more:
 
@@ -372,7 +393,7 @@ if show_more:
 	st.header('Correlation Matrix') # https://www.investopedia.com/terms/c/correlationcoefficient.asp
 	st.markdown('''[Correlation Info](https://www.investopedia.com/terms/c/correlationcoefficient.asp)''')
 	st.plotly_chart(fig_corr) # fig_corr is not a plotly chart
-	st.caption(''' Portfolio Correlation: {} '''.format(avg_corr.round(2)))
+	st.caption(''' Portfolio Correlation: {} '''.format(avg_corr))
 
 	st.subheader("Optimized MaxSharpe Portfolio Performance")
 	st.markdown('''[Efficient Frontier Info](https://www.investopedia.com/terms/e/efficientfrontier.asp)''')
@@ -394,40 +415,5 @@ st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
 st.markdown("""---""")
 
-# #################################################################################################################################
-
-# GPT_says = st.checkbox('AI, WHAT DOES ALL THIS MEAN? :crystal_ball: ')
-# if GPT_says:
-# # Display the weights_df dataframe
-# 	report_title = " AI Generated Report  "  
-# 	# Specify font to be inconsolata
-# 	report_icon = ":crystal_ball:" # emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
-# 	st.header('Summary')
-# 	st.title(report_icon + " " + report_title + " " + report_icon)
-# 	st.write('(give it a moment to generate response)')
-
-# 	# Get the api key from the .env file
-# 	openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# 	# Call GPT-3 to generate summary
-# 	prompt = f'''write a report on the {weights_df} dataframe and the {performance} metrics of the dataframe. 
-# 	Please provide your information using markdown labeled sub-headings and bullet points for each block of text.
-# 	Explain the weights assigned to each asset and why they were assigned those weights. 
-# 	Discuss the Sharpe ratio and correlation in {performance}.
-# 	Compare the optimized portfolio to the S&P 500 and discuss the differences.
-# 	Explain the expected returns, volatility in {performance}, and best time horizon for the portfolio.
-# 	'''
-# 	response = openai.Completion.create(
-# 		model="text-davinci-003", 
-# 		prompt= prompt,
-# 		temperature=.7,
-# 		max_tokens=1000, # the tokens are the max number of words. 
-# 		top_p=1.0,
-# 		frequency_penalty=0.0,
-# 		presence_penalty=0.0
-# 	)
-# 	resp = (f"\n {response['choices'][0]['text']}")
-# 	st.markdown(resp)
-# #################################################################################################################################
 
 
