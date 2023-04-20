@@ -164,7 +164,6 @@ def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000
 
 
 
-
 weights_df = {}
 weights = {}
 
@@ -203,6 +202,7 @@ S = risk_models.sample_cov(stocks_df)
 
 # Plot efficient frontier curve
 fig = plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate)  # Add risk_free_rate argument here
+risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
 fig_efficient_frontier = BytesIO()
 fig.savefig(fig_efficient_frontier, format="png")
 
