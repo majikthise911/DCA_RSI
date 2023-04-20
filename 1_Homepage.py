@@ -196,6 +196,9 @@ avg_corr = corr_df.mean().mean()
 mu = expected_returns.mean_historical_return(stocks_df)
 S = risk_models.sample_cov(stocks_df)
 
+# Enforce the covariance matrix to be symmetric
+S = (S + S.T) / 2
+
 # Plot efficient frontier curve
 fig = plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate)  # Add risk_free_rate argument here
 fig_efficient_frontier = BytesIO()
