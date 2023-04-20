@@ -46,6 +46,7 @@ st.sidebar.markdown('''
 - [AI Generated Report](#summary)
 ''', unsafe_allow_html=True)
 
+
 st.markdown('### 1. How Much?')
 # 1. AMOUNT
 # Enter investment amount and display it. It must be an integer not a string
@@ -58,12 +59,14 @@ st.session_state.amount = amount
 # st.write('You have entered: ', amount)
 st.markdown("""---""")
 
+
 # 2. TICKERS
 st.markdown('''### 2. What?
 Enter assets you would like to test as a portfolio''')
 st.caption(''' Enter tickers separated by commas WITHOUT spaces, e.g. "TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD" ''')
 tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
 tickers = tickers_string.split(',')
+
 
 #################################################3/24/23##########################################################################
 # Save tickers to SessionState
@@ -72,7 +75,7 @@ st.session_state.tickers = tickers
 
 st.markdown("""---""")
 
-# 3. How Long?
+
 st.markdown('''### 3. How Long?
 Enter start and end dates for backtesting your portfolio. 
 ''')
@@ -107,123 +110,134 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# -------------- FUNCTIONS ----------------
-# Plot cumulative returns
-def plot_cum_returns(data, title):    
-	daily_cum_returns = 1 + data.dropna().pct_change()
-	daily_cum_returns = daily_cum_returns.cumprod()*100 ### is this 100 for percentage or does it represent the initial investment amount? Answer: 100 for percentage
-	fig = px.line(daily_cum_returns, title=title)
-	return fig
 # Efficient frontier
-def plot_efficient_frontier_and_max_sharpe(mu, S): # mu is expected returns, S is covariance matrix. So we are defining a function that takes in these two parameters
-	# Optimize portfolio for max Sharpe ratio and plot it out with efficient frontier curve
-	ef = EfficientFrontier(mu, S) # the efficient frontier object is 
-	fig, ax = plt.subplots(figsize=(6,4)) # fig, ax = plt.subplots() is the same as fig = plt.figure() and ax = fig.add_subplot(111)
-	ef_max_sharpe = pickle.loads(pickle.dumps(ef)) 			
-		# 1. Import the "pickle" module.
-		# 2. Serialize the "ef" object using "pickle.dumps".
-		# 3. Deserialize the serialized object using "pickle.loads".
-		# 4. Create a new object called "ef_max_sharpe" from the deserialized object.
-		# This method is useful when you want to make a duplicate of an object without 
-		# modifying the original object. It is also useful when you want to store an object in a file or send it over a network.
-		# original method was to use copy.deepcopy(ef) but this breaks the code on cloud deployment. Cloud does not support deepcopy of CVXPY expression 
-		# however we need to use deepcopy because the original object is modified when we call ef.max_sharpe() and we need to keep the original object intact
-		# so we use pickle.loads(pickle.dumps(ef)) to make a copy of the object
-	plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
-	# Find the max sharpe portfolio
-	ef_max_sharpe.max_sharpe(risk_free_rate) # risk_free_rate is the risk-free rate of return which is the return you would get if you invested in a risk-free asset like a US Treasury Bill
-	ret_tangent, std_tangent, _ = ef_max_sharpe.portfolio_performance()
-	ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe") # s is size of marker, c is color of marker
-	# Generate random portfolios
-	n_samples = 1000
-	w = np.random.dirichlet(np.ones(ef.n_assets), n_samples)
-	rets = w.dot(ef.expected_returns)
-	stds = np.sqrt(np.diag(w @ ef.cov_matrix @ w.T))
-	sharpes = rets / stds
-	ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
-	# Output
-	ax.legend()
-	return fig
+def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000):
+    ef = EfficientFrontier(mu, S)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ef_max_sharpe = pickle.loads(pickle.dumps(ef))
+    plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
+
+    # Find the max sharpe portfolio
+    ef_max_sharpe.max_sharpe(risk_free_rate)
+    ret_tangent, std_tangent, _ = ef_max_sharpe.portfolio_performance()
+    ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
+
+    # Generate random portfolios
+    w = np.random.dirichlet(np.ones(ef.n_assets), n_samples)
+    rets = w.dot(ef.expected_returns)
+    stds = np.sqrt(np.diag(w @ ef.cov_matrix @ w.T))
+    sharpes = rets / stds
+    ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
+
+    ax.legend()
+    return fig
+
 
 weights_df = {}
 weights = {}
 
+#THIS IS WHERE OLD TRY STARTED 
 
-# The code to get stock prices using yfinance is below and in a try/except block because it sometimes fails and we need to catch the error
-# the try block will try to run the code in the try block. If it fails, it will run the code in the except block
-# the except block will run if the code in the try block fails
-try:
-	# Get Stock Prices using pandas_datareader Library	
-	stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-	stocks_df = stocks_df
-	# # Plot Individual Stock Prices
-	fig_price = px.line(stocks_df, title='Price of Individual Stocks')
-	# # Plot Individual Cumulative Returns
-	fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100')
-	# # Calculatge and Plot Correlation Matrix between Stocks
-	corr_df = stocks_df.corr().round(2) # round to 2 decimal places
-	fig_corr = px.imshow(corr_df, text_auto=True, title = 'Correlation between Stocks', width=600, height=600)
-	avg_corr = corr_df.mean().mean()
-
-	# Calculate expected returns and sample covariance matrix for portfolio optimization later
-	mu = expected_returns.mean_historical_return(stocks_df)
-	S = risk_models.sample_cov(stocks_df)
-
-	# Plot efficient frontier curve
-	fig = plot_efficient_frontier_and_max_sharpe(mu, S)
-	fig_efficient_frontier = BytesIO()
-	fig.savefig(fig_efficient_frontier, format="png")
-
-	# Get optimized weights
-	ef = EfficientFrontier(mu, S)
-	ef.add_objective(objective_functions.L2_reg, gamma=5)
-	# ef.add_constraint(lambda w: all(wi >= 0.05 for wi in w)) # delete
-	# ef.add_constraint(lambda w: sum(w) == 1) # delete
-	ef.max_sharpe(risk_free_rate)
-	weights = ef.clean_weights()
+# Add risk_free_rate as an argument - this fixed the error that did not let me remove the try and except block 
+risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
 
 
-	expected_annual_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
-	weights_df = pd.DataFrame.from_dict(weights, orient = 'index')
-	weights_df.columns = ['weights']
-        
-##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-	stocks_df['Optimized Portfolio'] = 0
-	for ticker in weights.keys():
-		weight = weights[ticker]
-		stocks_df['Optimized Portfolio'] = stocks_df[ticker]*weight
-            
 
-	# st.write('stocks_df1')
-	# st.write(stocks_df)
-	# # send stocks_df to csv
-	# stocks_df.to_csv('stocks_df.csv')
-        
-except Exception as e:
-    logging.exception('An error occurred: %s', str(e))
 
-##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-# if 'stocks_df' in locals(): # psuedo code: if stocks_df exists, then do the following
-#     stocks_df['Optimized Portfolio Amounts'] = 0 # create a new column in the stocks_df dataframe called "Optimized Portfolio Amounts" and set it equal to 0
-#     stocks_df2 = stocks_df # create a new dataframe called stocks_df2 and set it equal to stocks_df
-#     stocks_df2['Time'] = stocks_df2.index # create a new column in stocks_df2 called "Time" and set it equal to the index of stocks_df2
-#     for ticker, weight in weights.items(): # for each ticker and weight in the weights dictionary, .items() returns a list of tuples. 
-#         stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
-#     # # This code is to display how much the initial investment would be worth today
-#     last_index = len(stocks_df2) - 1
-#     for i in range(last_index, -1, -1):
-#         if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
-#             previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
-#             break
-# else:
-#     st.error("Failed to retrieve data. Please check your tickers and try again.")
+
+
+
+
+
+# Download data
+stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+
+# Plot Individual Stock Prices
+fig_price = px.line(stocks_df, title='Price of Individual Stocks')
+
+# Plot cumulative returns
+def plot_cum_returns(data, title):    
+    daily_cum_returns = (1 + data.fillna(0).pct_change()).cumprod()
+    fig = px.line(daily_cum_returns, title=title)
+    return fig
+
+
+# Make sure tickers variable contains all desired stock symbols
+tickers = ['TSLA', 'AAPL', 'GOOGL', 'AMZN', 'MSFT']
+
+# Plot Individual Cumulative Returns
+fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+# stocks_df = stocks_df 
+
+# # # Plot Individual Stock Prices
+# fig_price = px.line(stocks_df, title='Price of Individual Stocks') # chart working 4/20/23
+
+# # Plot cumulative returns
+# def plot_cum_returns(data, title):    
+#     daily_cum_returns = (1 + data.fillna(0).pct_change()).cumprod()
+#     fig = px.line(daily_cum_returns, title=title)
+#     return fig
+
+# # Plot Individual Cumulative Returns
+# fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100') # chart NOT working 4/20/23. It appears but is blank so the calculationo for plot_cum_returns must be messing up 
+
+
+
+
+# Calculate and Plot Correlation Matrix between Stocks
+corr_df = stocks_df.corr().round(2) # round to 2 decimal places
+fig_corr = px.imshow(corr_df, text_auto=True, title = 'Correlation between Stocks', width=600, height=600)
+avg_corr = corr_df.mean().mean()
+
+# Calculate expected returns and sample covariance matrix for portfolio optimization later
+mu = expected_returns.mean_historical_return(stocks_df)
+S = risk_models.sample_cov(stocks_df)
+
+# Plot efficient frontier curve
+fig = plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate)  # Add risk_free_rate argument here
+fig_efficient_frontier = BytesIO()
+fig.savefig(fig_efficient_frontier, format="png")
+
+# Get optimized weights
+ef = EfficientFrontier(mu, S)
+ef.add_objective(objective_functions.L2_reg, gamma=5)
+# ef.add_constraint(lambda w: all(wi >= 0.05 for wi in w)) # delete
+# ef.add_constraint(lambda w: sum(w) == 1) # delete
+ef.max_sharpe(risk_free_rate)  # Add risk_free_rate argument here
+weights = ef.clean_weights()
+
+expected_annual_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
+weights_df = pd.DataFrame.from_dict(weights, orient = 'index')
+weights_df.columns = ['weights']
+    
+stocks_df['Optimized Portfolio'] = 0
+for ticker in weights.keys():
+    weight = weights[ticker]
+    stocks_df['Optimized Portfolio'] = stocks_df[ticker]*weight
+
+
 
 stocks_df['Optimized Portfolio Amounts'] = 0 # create a new column in the stocks_df dataframe called "Optimized Portfolio Amounts" and set it equal to 0
 stocks_df2 = stocks_df # create a new dataframe called stocks_df2 and set it equal to stocks_df
-stocks_df2['Time'] = stocks_df2.index # create a new column in stocks_df2 called "Time" and set it equal to the index of stocks_df2weights_df['weights'] = (weights_df['weights']).round(2)
-
+stocks_df2['Time'] = stocks_df2.index
 
 for ticker, weight in weights.items(): # for each ticker and weight in the weights dictionary, .items() returns a list of tuples. 
 	stocks_df2['Optimized Portfolio Amounts'] += stocks_df2[ticker]*(weight/100)*amount
@@ -233,24 +247,7 @@ for i in range(last_index, -1, -1):
       if not pd.isna(stocks_df2["Optimized Portfolio Amounts"].iloc[i]):
         previous_date_value = stocks_df2["Optimized Portfolio Amounts"].iloc[i]
         break
-
-# display just the value of 
-
-# DATAFRAME CHECK - REMOVE BEFORE DEPLOYMENT
-# st.write('stocks_df')
-# st.write(stocks_df)
-# st.write('weights')
-# st.write(weights)
-# st.write('weights_df')      
-# st.write(weights_df)
-# weights_df.to_csv('weights_df.csv')
-# st.write('stocks_df2')
-# st.write(stocks_df2)
-# # display the type of data in the stocks_df2 dataframe
-# st.write('stocs_df2.dtypes')
-# st.write(stocks_df2.dtypes)
-##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
+      
 weights_df = weights_df.sort_values(by=['weights'], ascending=False)
 # display the weights_df dataframe multiplied by the amount of money invested
 amounts = weights_df*amount
@@ -263,11 +260,6 @@ st.header('Results')
 fig = px.pie(amounts_sorted, values='$ amounts', names=amounts_sorted.index)
 st.plotly_chart(fig)
 st.markdown("""---""")
-##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-# st.markdown(f''' ####  If you would have invested :green[$ *{amount:,.2f}*] in the Optimized Portfolio on :blue[*{start_date}*]
-# #### it would be worth :green[$ *{previous_date_value:,.2f}*] today. :eyes: ''')
-# st.markdown("""---""")
-##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 rsi_window = st.sidebar.slider('RSI Window', 1, 200, 14)
 
@@ -282,14 +274,15 @@ def get_rsi(data):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
+
 # Get list of tickers from user input
 # Import tickers from SessionState
 if 'tickers' not in st.session_state:
     st.warning('Please enter tickers on the previous page.')
 else:
     tickers = st.session_state.tickers
-    
-# Create empty dataframe to store RSI data
+
+
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
 # Loop through tickers and calculate RSI
@@ -310,6 +303,7 @@ if 'tickers' not in st.session_state:
     st.session_state.tickers = rsi_df
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
+
 
 results = st.checkbox('Weights & RSI')
 if results:
@@ -347,7 +341,7 @@ if pe:
     so_wat = st.expander("so wat??")
     so_wat.caption("Volatility mean big ups and big downs for investment. More ups and downs mean more danger, but also maybe more meat for hunt.")
 
-	# st.subheader('Sharpe Ratio: {}'.format(sharpe_ratio.round(2)))
+# st.subheader('Sharpe Ratio: {}'.format(sharpe_ratio.round(2)))
     st.markdown(''' ### Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
     wat_dis = st.expander("wat dis??")
     wat_dis.caption("Bigger number good, smaller number bad. Sharpe big, risk go away.")
@@ -361,31 +355,32 @@ if pe:
 		- $\sigma_p$ is the standard deviation of the portfolio returns
 		""")
 	
+
     st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr))
     hmm = st.expander("hmm??")
     hmm.caption('''Correlation shows how stocks move together, more together
-	*(larger correlation number)* means more risk. Spread out stocks *(smaller correlation number)*
-	less risk, like having different tools for different jobs.''')
+    *(larger correlation number)* means more risk. Spread out stocks *(smaller correlation number)*
+    less risk, like having different tools for different jobs.''')
     hmm.caption('''
-	- A correlation of 1 = you are comparing the same stock to itself, so it is 100% correlated.
-	- A correlation of 0 = you are comparing two stocks that are not correlated at all.
-	- A correlation of -1 = you are comparing two stocks that are negatively correlated, meaning that when one goes up, the other goes down.
-	''')
-	# #Combine the 4 performance expectations into a table to pass through to chat gpt
+    - A correlation of 1 = you are comparing the same stock to itself, so it is 100% correlated.
+    - A correlation of 0 = you are comparing two stocks that are not correlated at all.
+    - A correlation of -1 = you are comparing two stocks that are negatively correlated, meaning that when one goes up, the other goes down.
+    ''')
+    # Combine the 4 performance expectations into a table to pass through to chat gpt
     performance = pd.DataFrame({
-		'Expected Annual Return': [expected_annual_return*100], 
-		'Annual Volatility': [annual_volatility*100], 
-		'Sharpe Ratio': [sharpe_ratio], 
-		'Portfolio Correlation': [avg_corr]
-		})
-
+        'Expected Annual Return': [expected_annual_return*100], 
+        'Annual Volatility': [annual_volatility*100], 
+        'Sharpe Ratio': [sharpe_ratio], 
+        'Portfolio Correlation': [avg_corr]
+        })
 	# Optimized Portfolio: Cumulative Returns
     fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
     fig.update_yaxes(title_text='$ Amount')
     st.plotly_chart(fig)
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
     st.markdown("""---""")
-    
+
+     
 show_more = st.checkbox('Correlation & Efficient Frontier')
 if show_more:
 
@@ -406,13 +401,11 @@ if even_more:
 	st.plotly_chart(fig_price)
 	st.markdown("""---""")
 
-	st.plotly_chart(fig_cum_returns)
-	st.write(logging.exception(''))
-	st.markdown("""---""")
+	# st.plotly_chart(fig_cum_returns)
+	# st.write(logging.exception(''))
+	# st.markdown("""---""")
 
 
 st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
 st.markdown("""---""")
-
-
