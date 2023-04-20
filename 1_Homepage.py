@@ -184,10 +184,6 @@ def plot_cum_returns(data, title):
     fig = px.line(daily_cum_returns, title=title)
     return fig
 
-
-# Make sure tickers variable contains all desired stock symbols
-tickers = ['TSLA', 'AAPL', 'GOOGL', 'AMZN', 'MSFT']
-
 # Plot Individual Cumulative Returns
 fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100')
 
@@ -202,7 +198,6 @@ S = risk_models.sample_cov(stocks_df)
 
 # Plot efficient frontier curve
 fig = plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate)  # Add risk_free_rate argument here
-risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
 fig_efficient_frontier = BytesIO()
 fig.savefig(fig_efficient_frontier, format="png")
 
