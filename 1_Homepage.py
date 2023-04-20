@@ -110,9 +110,37 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# Efficient frontier
+
+
+
+
+# # Efficient frontier
+# def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000):
+#     ef = EfficientFrontier(mu, S)
+#     fig, ax = plt.subplots(figsize=(6, 4))
+#     ef_max_sharpe = pickle.loads(pickle.dumps(ef))
+#     plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
+
+#     # Find the max sharpe portfolio
+#     ef_max_sharpe.max_sharpe(risk_free_rate)
+#     ret_tangent, std_tangent, _ = ef_max_sharpe.portfolio_performance()
+#     ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
+
+#     # Generate random portfolios
+#     w = np.random.dirichlet(np.ones(ef.n_assets), n_samples)
+#     rets = w.dot(ef.expected_returns)
+#     stds = np.sqrt(np.diag(w @ ef.cov_matrix @ w.T))
+#     sharpes = rets / stds
+#     ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
+
+#     ax.legend()
+#     return fig
+
 def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000):
-    ef = EfficientFrontier(mu, S)
+    # Make sure the covariance matrix is symmetric
+    S_symmetric = (S + S.T) / 2
+
+    ef = EfficientFrontier(mu, S_symmetric)
     fig, ax = plt.subplots(figsize=(6, 4))
     ef_max_sharpe = pickle.loads(pickle.dumps(ef))
     plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
@@ -133,6 +161,10 @@ def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000
     return fig
 
 
+
+
+
+
 weights_df = {}
 weights = {}
 
@@ -140,16 +172,6 @@ weights = {}
 
 # Add risk_free_rate as an argument - this fixed the error that did not let me remove the try and except block 
 risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
-
-
-
-
-
-
-
-
-
-
 
 # Download data
 stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
@@ -169,38 +191,6 @@ tickers = ['TSLA', 'AAPL', 'GOOGL', 'AMZN', 'MSFT']
 
 # Plot Individual Cumulative Returns
 fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
-# stocks_df = stocks_df 
-
-# # # Plot Individual Stock Prices
-# fig_price = px.line(stocks_df, title='Price of Individual Stocks') # chart working 4/20/23
-
-# # Plot cumulative returns
-# def plot_cum_returns(data, title):    
-#     daily_cum_returns = (1 + data.fillna(0).pct_change()).cumprod()
-#     fig = px.line(daily_cum_returns, title=title)
-#     return fig
-
-# # Plot Individual Cumulative Returns
-# fig_cum_returns = plot_cum_returns(stocks_df, 'Cumulative Returns of Individual Stocks Starting with $100') # chart NOT working 4/20/23. It appears but is blank so the calculationo for plot_cum_returns must be messing up 
-
-
-
 
 # Calculate and Plot Correlation Matrix between Stocks
 corr_df = stocks_df.corr().round(2) # round to 2 decimal places
