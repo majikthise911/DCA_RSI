@@ -8,14 +8,22 @@ To use the app, simply enter the investment amount, tickers of the assets you wa
 
 ## Technologies used:
 
-Python
-Streamlit: a Python library for creating web apps
-PyPortfolioOpt: a Python library for portfolio optimization
-yfinance: a Python library for downloading historical asset price data from Yahoo Finance
-Plotly: a Python library for creating interactive data visualizations
-Matplotlib: a Python library for creating static data visualizations
-Seaborn: a Python library for creating data visualizations
-OpenAI: an AI research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
+- Python
+
+- Streamlit: a Python library for creating web apps
+
+- PyPortfolioOpt: a Python library for portfolio optimization
+
+- yfinance: a Python library for downloading historical asset price data from Yahoo Finance
+
+- Plotly: a Python library for creating interactive data visualizations
+
+- Matplotlib: a Python library for creating static data visualizations
+
+- Plotly Express & Seaborn: For creating data visualizations
+
+- OpenAI: an AI research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
+
 Features:
 
 # Investment Amount: 

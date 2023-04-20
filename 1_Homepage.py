@@ -186,7 +186,7 @@ try:
 	expected_annual_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
 	weights_df = pd.DataFrame.from_dict(weights, orient = 'index')
 	weights_df.columns = ['weights']
-	st.session_state.weights_df = weights_df
+        
 ##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 	stocks_df['Optimized Portfolio'] = 0
@@ -251,7 +251,6 @@ for i in range(last_index, -1, -1):
 # st.write(stocks_df2.dtypes)
 ##################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-wegiths_df = st.session_state.weights_df
 weights_df = weights_df.sort_values(by=['weights'], ascending=False)
 # display the weights_df dataframe multiplied by the amount of money invested
 amounts = weights_df*amount
@@ -415,6 +414,5 @@ if even_more:
 st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
 st.markdown("""---""")
-
 
 
