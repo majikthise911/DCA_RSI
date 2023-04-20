@@ -4,7 +4,6 @@ README for Financial Portfolio Optimizer App
 ## Introduction:
 The Financial Portfolio Optimizer app allows users to optimize their portfolio by calculating the optimal allocation of assets based on their desired risk-return profile. The app uses historical asset price data to calculate expected returns, sample covariance matrix, and efficient frontier to optimize the portfolio. The user can enter an investment amount, tickers of the assets they want to include in their portfolio, and the start and end dates for backtesting their portfolio. The app also includes features such as a correlation matrix, individual stock prices and cumulative returns, and an AI-generated report.
 
-## Instructions:
 To use the app, simply enter the investment amount, tickers of the assets you want to include in your portfolio, and the start and end dates for backtesting your portfolio. The app will then display a pie chart showing the optimized allocation of assets based on the desired risk-return profile. The user can also view the correlation matrix, individual stock prices and cumulative returns, and an AI-generated report.
 
 ## Technologies used:
