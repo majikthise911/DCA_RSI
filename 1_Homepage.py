@@ -63,8 +63,8 @@ st.markdown("""---""")
 # 2. TICKERS
 st.markdown('''### 2. What?
 Enter assets you would like to test as a portfolio''')
-st.caption(''' Enter tickers separated by commas WITHOUT spaces, e.g. "TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD" ''')
-tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,OCEAN-USD,DOT-USD,MATIC-USD').upper()
+st.caption(''' Enter tickers separated by commas WITHOUT spaces, e.g. "TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,MATIC-USD,COIN,XRP-USD,ARKK,AMZN" ''')
+tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,COIN,XRP-USD,ARKK,AMZN,USD').upper()
 tickers = tickers_string.split(',')
 
 
