@@ -365,7 +365,7 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     
     st.markdown("""---""")
 ##################################################################################################################################
-openai.api_key = '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'
+openai.api_key = ''
 # Update imports
 from openai.error import InvalidRequestError
 
@@ -392,7 +392,6 @@ def get_portfolio_analysis(weights_df):
   return response.choices[0].message.content
 portfolio_analysis = get_portfolio_analysis(weights_df)
 
-st.markdown('# Portfolio Analysis')
 st.markdown(portfolio_analysis)
 ##################################################################################################################################
 
