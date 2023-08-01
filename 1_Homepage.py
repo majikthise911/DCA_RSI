@@ -377,8 +377,7 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     
     st.markdown("""---""")
 ######################################################8/1/23############################################################################
-st.markdown('''# GPT-4 Analysis (give it a few seconds to load)''')
-
+st.markdown("## GPT-4 Analysis (takes about 30 seconds to load)")
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -418,7 +417,10 @@ def get_portfolio_analysis(weights_df):
   return response.choices[0].message.content
 portfolio_analysis = get_portfolio_analysis(weights_df)
 
-st.markdown(portfolio_analysis)
+
+with st.expander("Portfolio Analysis"):
+    st.markdown(portfolio_analysis)
+
 ######################################################8/1/23############################################################################
 
 # footer 
