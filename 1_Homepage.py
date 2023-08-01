@@ -13,7 +13,7 @@ import copy	# for deepcopy
 # from dotenv import load_dotenv # comment out for deployment 
 # load_dotenv() # comment out for deployment 
 
-# import openai # pip install openai
+import openai # pip install openai
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -51,7 +51,7 @@ st.markdown('### 1. How Much?')
 # 1. AMOUNT
 # Enter investment amount and display it. It must be an integer not a string
 if 'amount' not in st.session_state:
-    st.session_state.amount = 1000
+    st.session_state.amount = 100000
 
 amount = st.number_input('Investment Amount $', min_value=0, max_value=1000000, value=st.session_state.amount, step=100)
 # Save amount to SessionState
@@ -61,11 +61,16 @@ st.markdown("""---""")
 
 
 # 2. TICKERS
-st.markdown('''### 2. What?
-Enter assets you would like to test as a portfolio''')
-st.caption(''' Enter tickers separated by commas WITHOUT spaces, e.g. "TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,MATIC-USD,COIN,XRP-USD,ARKK,AMZN" ''')
-tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,COIN,XRP-USD,ARKK,AMZN,USD').upper()
+# Display tickers in a table
+st.markdown('''### 2. What? Enter assets you would like to test as a portfolio''')
+
+tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,COIN,XRP-USD,ARKK,AMZN,USD,COIN,NVDA,SQ,SHOP,PLTR').upper()
+
 tickers = tickers_string.split(',')
+
+with st.expander("Tickers"):
+     ticker_df = pd.DataFrame(tickers, columns=['Tickers'])   
+     st.table(ticker_df)
 
 
 #################################################3/24/23##########################################################################
@@ -293,107 +298,105 @@ if 'tickers' not in st.session_state:
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
 
 
-results = st.checkbox('Weights & RSI')
-if results:
-	# Display pie chart created below 
+with st.expander("Weights & RSI"):
 
-	# Tables of weights and amounts
-    col1, col2, col3 = st.columns(3)
-    with col1:
-		# display the weights_df dataframe
-        st.markdown('''#### WEIGHTS 
-					(must add up to 1) ''')
-        st.dataframe(weights_df)
-		
-    with col2:
-        st.markdown(f'''#### BUY THIS AMOUNT 
-					(must add up to $ {amount}) ''')
-        st.dataframe(amounts_sorted)
+    # Display pie chart 
     
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        # display the weights_df dataframe
+        st.markdown('''#### WEIGHTS (must add up to 1) ''')  
+        st.dataframe(weights_df)
+
+    with col2:
+        st.markdown(f'''#### BUY THIS AMOUNT (must add up to $ {amount}) ''')
+        st.dataframe(amounts_sorted)
+
     with col3:
-        st.markdown(f'''<h3 style="text-align:center;">RSI</h3>
-                        <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
+        st.markdown(f'''<h3 style="text-align:center;">RSI</h3> 
+        <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
         st.dataframe(rsi_df.style.hide_index())
+
         
-pe = st.checkbox('Performance Expectations')
-if pe:
-    st.header('Performance Expectations:')
+with st.expander("Performance Expectations"):
 
-	# st.subheader('Expected annual return: {}%'.format((expected_annual_return*100).round(2)))
     st.markdown(''' ### Expected annual return: :green[{}%] '''.format((expected_annual_return*100).round(2)))
-    big_wrds = st.expander("big wrds??")
-    big_wrds.caption("Annual expected return shows how much money you can get from a thing you put your eggs in. Big number good, little number bad.")
 
-	# st.subheader('Annual volatility: {}%'.format((annual_volatility*100).round(2)))
     st.markdown(''' ### Annual volatility: :green[{}%] '''.format((annual_volatility*100).round(2)))
-    so_wat = st.expander("so wat??")
-    so_wat.caption("Volatility mean big ups and big downs for investment. More ups and downs mean more danger, but also maybe more meat for hunt.")
 
-# st.subheader('Sharpe Ratio: {}'.format(sharpe_ratio.round(2)))
     st.markdown(''' ### Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
-    wat_dis = st.expander("wat dis??")
-    wat_dis.caption("Bigger number good, smaller number bad. Sharpe big, risk go away.")
-    wat_dis.caption(r"""
-			$$
-		\frac{R_p - R_f}{\sigma_p}
-		$$
-		where:
-		- $R_p$ is the average return of the portfolio
-		- $R_f$ is the risk-free rate
-		- $\sigma_p$ is the standard deviation of the portfolio returns
-		""")
-	
 
     st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr))
-    hmm = st.expander("hmm??")
-    hmm.caption('''Correlation shows how stocks move together, more together
-    *(larger correlation number)* means more risk. Spread out stocks *(smaller correlation number)*
-    less risk, like having different tools for different jobs.''')
-    hmm.caption('''
-    - A correlation of 1 = you are comparing the same stock to itself, so it is 100% correlated.
-    - A correlation of 0 = you are comparing two stocks that are not correlated at all.
-    - A correlation of -1 = you are comparing two stocks that are negatively correlated, meaning that when one goes up, the other goes down.
-    ''')
-    # Combine the 4 performance expectations into a table to pass through to chat gpt
-    performance = pd.DataFrame({
-        'Expected Annual Return': [expected_annual_return*100], 
-        'Annual Volatility': [annual_volatility*100], 
-        'Sharpe Ratio': [sharpe_ratio], 
-        'Portfolio Correlation': [avg_corr]
-        })
-	# Optimized Portfolio: Cumulative Returns
+    
+    # Optimized Portfolio: Cumulative Returns 
     fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
     fig.update_yaxes(title_text='$ Amount')
     st.plotly_chart(fig)
+    
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
-    st.markdown("""---""")
 
      
-show_more = st.checkbox('Correlation & Efficient Frontier')
-if show_more:
+with st.expander("Correlation & Efficient Frontier"):
 
-	# add link to Correlation Matrix header that takes you to investopedia article on correlation
-	st.header('Correlation Matrix') # https://www.investopedia.com/terms/c/correlationcoefficient.asp
-	st.markdown('''[Correlation Info](https://www.investopedia.com/terms/c/correlationcoefficient.asp)''')
-	st.plotly_chart(fig_corr) # fig_corr is not a plotly chart
-	st.caption(''' Portfolio Correlation: {} '''.format(avg_corr))
+    st.header('Correlation Matrix')
 
-	st.subheader("Optimized MaxSharpe Portfolio Performance")
-	st.markdown('''[Efficient Frontier Info](https://www.investopedia.com/terms/e/efficientfrontier.asp)''')
-	st.image(fig_efficient_frontier)
-	st.markdown("""---""")
+    st.markdown('''[Correlation Info](https://www.investopedia.com/terms/c/correlationcoefficient.asp)''')
+    
+    st.plotly_chart(fig_corr)
 
-even_more = st.checkbox('Individual Stock Prices and Cumulative Returns')
-if even_more:
-	st.header('Individual Stock Prices and Cumulative Returns')
-	st.plotly_chart(fig_price)
-	st.markdown("""---""")
+    st.caption(''' Portfolio Correlation: {} '''.format(avg_corr))
 
-	# st.plotly_chart(fig_cum_returns)
-	# st.write(logging.exception(''))
-	# st.markdown("""---""")
+    st.subheader("Optimized MaxSharpe Portfolio Performance")
+
+    st.markdown('''[Efficient Frontier Info](https://www.investopedia.com/terms/e/efficientfrontier.asp)''')
+
+    st.image(fig_efficient_frontier)
+        
 
 
+with st.expander("Individual Stock Prices and Cumulative Returns"):
+
+    st.header('Individual Stock Prices and Cumulative Returns')
+    
+    st.plotly_chart(fig_price)
+    
+    st.plotly_chart(fig_cum_returns)
+    
+    st.markdown("""---""")
+##################################################################################################################################
+openai.api_key = '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'
+# Update imports
+from openai.error import InvalidRequestError
+
+# New function to get portfolio analysis  
+def get_portfolio_analysis(weights_df):
+
+  # Craft prompt with portfolio weights
+  prompt = f"Analyze this portfolio allocation: {weights_df.to_string()}"
+  
+  try:
+    # Use Chat Completions endpoint
+    response = openai.ChatCompletion.create(
+      model="gpt-4",  
+      messages=[
+        {"role": "system", "content": "You are an investment advisor giving portfolio analysis"},
+        {"role": "user", "content": prompt}
+      ]
+    )
+  except InvalidRequestError as e:
+    # Handle incorrect API endpoint error
+    print(e)
+    return None
+  
+  return response.choices[0].message.content
+portfolio_analysis = get_portfolio_analysis(weights_df)
+
+st.markdown('# Portfolio Analysis')
+st.markdown(portfolio_analysis)
+##################################################################################################################################
+
+# footer 
 st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
 st.markdown("""---""")
