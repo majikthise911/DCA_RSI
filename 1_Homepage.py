@@ -1,3 +1,5 @@
+# TODO: add future projections via monte carlo or something to get an estimate for future performance 
+
 import streamlit as st
 import pypfopt	
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices# pip install PyPortfolioOpt
@@ -7,13 +9,11 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 from pypfopt import plotting
 from pypfopt import objective_functions
-import os	# for os.path.join
 import copy	# for deepcopy
 
 # from dotenv import load_dotenv # comment out for deployment 
 # load_dotenv() # comment out for deployment 
 
-import openai # pip install openai
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -117,8 +117,6 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 
 
 
-
-
 # # Efficient frontier
 # def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000):
 #     ef = EfficientFrontier(mu, S)
@@ -164,8 +162,6 @@ def plot_efficient_frontier_and_max_sharpe(mu, S, risk_free_rate, n_samples=1000
 
     ax.legend()
     return fig
-
-
 
 
 
@@ -335,8 +331,24 @@ with st.expander("Performance Expectations"):
     st.plotly_chart(fig)
     
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
+##############################################8/1/23####################################################################################
 
-     
+# Extract metrics into variables
+ear = ((expected_annual_return*100).round(2)) 
+av = ((annual_volatility*100).round(2))
+sr = (sharpe_ratio.round(2))
+corr = avg_corr
+
+# Create dataframe 
+data = {
+  'Metric': ['Expected Return', 'Volatility', 'Sharpe Ratio', 'Correlation'],
+  'Value': [ear, av, sr, corr]
+}
+
+df = pd.DataFrame(data)
+
+# st.dataframe(df)
+###################################################8/1/23###############################################################################
 with st.expander("Correlation & Efficient Frontier"):
 
     st.header('Correlation Matrix')
@@ -364,8 +376,17 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     st.plotly_chart(fig_cum_returns)
     
     st.markdown("""---""")
-##################################################################################################################################
-openai.api_key = ''
+######################################################8/1/23############################################################################
+st.markdown('''# GPT-4 Analysis (give it a few seconds to load)''')
+
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 # Update imports
 from openai.error import InvalidRequestError
 
@@ -373,7 +394,12 @@ from openai.error import InvalidRequestError
 def get_portfolio_analysis(weights_df):
 
   # Craft prompt with portfolio weights
-  prompt = f"Analyze this portfolio allocation: {weights_df.to_string()}"
+  prompt = f'''write a report on the dataframe. 
+    Please provide your information using markdown labeled sub-headings and bullet points for each block of text.
+    Discuss the Sharpe ratio and correlation of the optimized portfolio.
+    Compare the optimized portfolio to the S&P 500 and discuss the differences.
+    Explain the expected returns, volatility, and best time horizon for the portfolio.
+    Offer suggestions to better optimize and diversify the portfolio and provide logic for your suggestions. : {rsi_df.to_string()}{df.to_string()}{weights_df.to_string()}'''
   
   try:
     # Use Chat Completions endpoint
@@ -393,7 +419,7 @@ def get_portfolio_analysis(weights_df):
 portfolio_analysis = get_portfolio_analysis(weights_df)
 
 st.markdown(portfolio_analysis)
-##################################################################################################################################
+######################################################8/1/23############################################################################
 
 # footer 
 st.markdown("""---""")
