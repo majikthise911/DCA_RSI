@@ -391,6 +391,45 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     
     st.markdown("""---""")
 
+######################################################8/2/23 EMPYRIAL ############################################################################
+import streamlit as st
+from empyrial import empyrial, Engine
+import matplotlib.pyplot as plt
+
+# Disable the PyplotGlobalUseWarning
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
+# Build empyrial plot 
+portfolio = Engine(
+    start_date="2018-01-01",
+    benchmark=["SPY"],
+    portfolio=['TSLA', 'ETH-USD', 'BTC-USD', 'AVAX-USD', 'DOT-USD', 'COIN', 'XRP-USD', 'ARKK', 'AMZN', 'USD', 'NVDA', 'SQ', 'SHOP', 'PLTR'],
+    optimizer="EF"
+)
+
+# Get the empyrial plot and performance metrics
+eplot, performance_metrics = empyrial(portfolio)
+
+# Check if eplot is not None
+if eplot is not None:
+    # Display the plots using matplotlib in Streamlit
+    for fig in eplot:
+        # Pass the figure explicitly to st.pyplot()
+        st.pyplot(fig)
+
+    # Display the performance metrics table
+    st.write("Backtest")
+    st.write("Annual return:", performance_metrics["Annual return"])
+    st.write("Cumulative return:", performance_metrics["Cumulative return"])
+    st.write("Annual volatility:", performance_metrics["Annual volatility"])
+    # Add other performance metrics as needed
+
+else:
+    st.write("No data available for the plot.")
+
+
+
+######################################################8/2/23 EMPYRIAL ############################################################################
 
 ######################################################8/1/23############################################################################
 st.markdown("## GPT-4 Analysis (takes about 30 seconds to load)")
