@@ -473,7 +473,7 @@ for i in range(sims):
     path = predictions + noise
 
     sim_paths[i, :, j+1] = path
-    
+
 # Take mean across sims  
 projections = sim_paths.mean(axis=0)
 

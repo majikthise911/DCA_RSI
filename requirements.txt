@@ -12,6 +12,7 @@ streamlit_option_menu==0.3.2
 openai
 cvxpy==1.3.1
 cvxopt==1.3.0
+xgboost
 # STREAMLIT_CONFIG_DIR=/app/.streamlit
 
 
