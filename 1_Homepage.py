@@ -27,6 +27,10 @@ from datetime import datetime, timedelta
 from io import BytesIO # for downloading files
 import logging	# for logging
 import pickle # pip install pickle5
+from sklearn.linear_model import LinearRegression
+from scipy.stats import norm
+from scipy.interpolate import interp1d
+
 
 # -------------- PAGE CONFIG --------------
 page_title = "Financial Portfolio Optimizer"
@@ -316,14 +320,23 @@ with st.expander("Weights & RSI"):
 
         
 with st.expander("Performance Expectations"):
+    col1, col2 = st.columns(2)
+    with col1: 
+        st.markdown("Optimized Portfolio Expectations")
+        st.markdown("""---""")
+        st.markdown(''' Expected annual return: :green[{}%] '''.format((expected_annual_return*100).round(2)))
+        st.markdown(''' Annual volatility: :green[{}%] '''.format((annual_volatility*100).round(2)))
+        st.markdown(''' Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
+        st.markdown(''' Portfolio Correlation: :green[{}] '''.format(avg_corr))
 
-    st.markdown(''' ### Expected annual return: :green[{}%] '''.format((expected_annual_return*100).round(2)))
+    with col2: 
+        st.markdown("SP500 Average Historical Performance")
+        st.markdown("""---""")
+        st.markdown(''' Expected annual return: :green[{}%] '''.format(10))
+        st.markdown(''' Annual volatility: :green[{}%] '''.format(15))
+        st.markdown(''' Sharpe Ratio: :green[{}] '''.format(0.5))
+        st.markdown(''' Portfolio Correlation: :green[{}] '''.format(0.7))
 
-    st.markdown(''' ### Annual volatility: :green[{}%] '''.format((annual_volatility*100).round(2)))
-
-    st.markdown(''' ### Sharpe Ratio: :green[{}] '''.format(sharpe_ratio.round(2)))
-
-    st.markdown(''' ### Portfolio Correlation: :green[{}] '''.format(avg_corr))
     
     # Optimized Portfolio: Cumulative Returns 
     fig = px.line(stocks_df2, x='Time', y='Optimized Portfolio Amounts', title= 'Optimized Portfolio: Cumulative Returns')
@@ -331,6 +344,7 @@ with st.expander("Performance Expectations"):
     st.plotly_chart(fig)
     
     st.caption('Click and drag a box on the graph to zoom in on a specific time period.:point_up:')
+
 ##############################################8/1/23####################################################################################
 
 # Extract metrics into variables
@@ -376,6 +390,8 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     st.plotly_chart(fig_cum_returns)
     
     st.markdown("""---""")
+
+
 ######################################################8/1/23############################################################################
 st.markdown("## GPT-4 Analysis (takes about 30 seconds to load)")
 from dotenv import load_dotenv
@@ -398,7 +414,9 @@ def get_portfolio_analysis(weights_df):
     Discuss the Sharpe ratio and correlation of the optimized portfolio.
     Compare the optimized portfolio to the S&P 500 and discuss the differences.
     Explain the expected returns, volatility, and best time horizon for the portfolio.
-    Offer suggestions to better optimize and diversify the portfolio and provide logic for your suggestions. : {rsi_df.to_string()}{df.to_string()}{weights_df.to_string()}'''
+    Offer suggestions to better optimize and diversify the portfolio and provide logic for your suggestions. : {rsi_df.to_string()}{df.to_string()}{weights_df.to_string()}
+    Offer an example portfolio with allocations that incorporates your suggestions to further optimize and 
+    output this suggested portfolio in a table with one column for the new suggested allocations and another for the original optimized portfolio'''
   
   try:
     # Use Chat Completions endpoint
@@ -422,7 +440,51 @@ with st.expander("Portfolio Analysis"):
     st.markdown(portfolio_analysis)
 
 ######################################################8/1/23############################################################################
+######################################################8/2/23############################################################################
+# Imports
+from xgboost import XGBRegressor  
 
+# Model fitting  
+# Get data
+start_date = '2020-01-01'
+end_date = '2023-01-01' 
+tickers = ['AAPL', 'TSLA']
+
+prices = yf.download(tickers, start=start_date, end=end_date)['Close']   
+
+filled_prices = prices.fillna(method='ffill').fillna(method='bfill')
+
+model = XGBRegressor()
+model.fit(filled_prices.shift(1), filled_prices)
+
+# Monte Carlo simulation
+sims = 1000
+horizons = 252
+
+# Pre-allocate 3D numpy array instead of DataFrame 
+sim_paths = np.zeros((sims, len(tickers), horizons+1))
+
+for i in range(sims):
+  path = filled_prices.iloc[-1].values
+
+  for j in range(horizons):
+    noise = norm.rvs(0, filled_prices.std(), size=len(tickers))
+    predictions = model.predict(path.reshape(1,-1))[0]  
+    path = predictions + noise
+
+    sim_paths[i, :, j+1] = path
+    
+# Take mean across sims  
+projections = sim_paths.mean(axis=0)
+
+# Plot 
+fig = px.line(projections)
+fig.add_scatter(x=filled_prices.index, y=filled_prices, mode='lines')
+
+# Display in Streamlit
+st.header('Monte Carlo Projections')
+st.plotly_chart(fig)
+######################################################8/2/23############################################################################
 # footer 
 st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
