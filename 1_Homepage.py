@@ -392,40 +392,40 @@ with st.expander("Individual Stock Prices and Cumulative Returns"):
     st.markdown("""---""")
 
 ######################################################8/2/23 EMPYRIAL ############################################################################
-import streamlit as st
-from empyrial import empyrial, Engine
-import matplotlib.pyplot as plt
+# import streamlit as st
+# from empyrial import empyrial, Engine
+# import matplotlib.pyplot as plt
 
-# Disable the PyplotGlobalUseWarning
-st.set_option('deprecation.showPyplotGlobalUse', False)
+# # Disable the PyplotGlobalUseWarning
+# st.set_option('deprecation.showPyplotGlobalUse', False)
 
-# Build empyrial plot 
-portfolio = Engine(
-    start_date="2018-01-01",
-    benchmark=["SPY"],
-    portfolio=['TSLA', 'ETH-USD', 'BTC-USD', 'AVAX-USD', 'DOT-USD', 'COIN', 'XRP-USD', 'ARKK', 'AMZN', 'USD', 'NVDA', 'SQ', 'SHOP', 'PLTR'],
-    optimizer="EF"
-)
+# # Build empyrial plot 
+# portfolio = Engine(
+#     start_date="2018-01-01",
+#     benchmark=["SPY"],
+#     portfolio=['TSLA', 'ETH-USD', 'BTC-USD', 'AVAX-USD', 'DOT-USD', 'COIN', 'XRP-USD', 'ARKK', 'AMZN', 'USD', 'NVDA', 'SQ', 'SHOP', 'PLTR'],
+#     optimizer="EF"
+# )
 
-# Get the empyrial plot and performance metrics
-eplot, performance_metrics = empyrial(portfolio)
+# # Get the empyrial plot and performance metrics
+# eplot, performance_metrics = empyrial(portfolio)
 
-# Check if eplot is not None
-if eplot is not None:
-    # Display the plots using matplotlib in Streamlit
-    for fig in eplot:
-        # Pass the figure explicitly to st.pyplot()
-        st.pyplot(fig)
+# # Check if eplot is not None
+# if eplot is not None:
+#     # Display the plots using matplotlib in Streamlit
+#     for fig in eplot:
+#         # Pass the figure explicitly to st.pyplot()
+#         st.pyplot(fig)
 
-    # Display the performance metrics table
-    st.write("Backtest")
-    st.write("Annual return:", performance_metrics["Annual return"])
-    st.write("Cumulative return:", performance_metrics["Cumulative return"])
-    st.write("Annual volatility:", performance_metrics["Annual volatility"])
-    # Add other performance metrics as needed
+#     # Display the performance metrics table
+#     st.write("Backtest")
+#     st.write("Annual return:", performance_metrics["Annual return"])
+#     st.write("Cumulative return:", performance_metrics["Cumulative return"])
+#     st.write("Annual volatility:", performance_metrics["Annual volatility"])
+#     # Add other performance metrics as needed
 
-else:
-    st.write("No data available for the plot.")
+# else:
+#     st.write("No data available for the plot.")
 
 
 
@@ -479,51 +479,97 @@ with st.expander("Portfolio Analysis"):
     st.markdown(portfolio_analysis)
 
 ######################################################8/1/23############################################################################
+######################################################8/8/23CHATBOT############################################################################
+with st.expander("Chatbot"):
+
+    import openai
+    import toml
+    import os
+    import streamlit as st
+    
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+
+
+    def show_messages(text):
+        messages_str = [
+            f"{_['role']}: {_['content']}" for _ in st.session_state["messages"][1:]  
+        ]
+        text.text_area("Messages", value=str("\n".join(messages_str)), height=400)
+
+    openai.api_key = os.environ.get("OPENAI_API_KEY")  
+    
+    BASE_PROMPT = [{...}]
+
+    prompt = st.text_input("Prompt", value="Enter your message here...")
+    
+    if st.button("Send"):
+        with st.spinner("Generating response..."):
+            st.session_state["messages"] += [{"role": "user", "content": prompt}] 
+            response = openai.ChatCompletion.create(
+                model=model, messages=st.session_state["messages"]
+            )
+            message_response = response["choices"][0]["message"]["content"]
+            st.session_state["messages"] += [{"role": "system", "content": message_response}]
+            show_messages(text)
+
+    if st.button("Clear"):
+        st.session_state["messages"] = BASE_PROMPT
+        show_messages(text)
+        
+    text = st.empty()
+    show_messages(text)
+######################################################8/8/23CHATBOT############################################################################
+
+
 ######################################################8/2/23############################################################################
-# Imports
-from xgboost import XGBRegressor  
+# # Imports
+# from xgboost import XGBRegressor  
 
-# Model fitting  
-# Get data
-start_date = '2020-01-01'
-end_date = '2023-01-01' 
-tickers = ['AAPL', 'TSLA']
+# # Model fitting  
+# # Get data
+# start_date = '2020-01-01'
+# end_date = '2023-01-01' 
+# tickers = ['AAPL', 'TSLA']
 
-prices = yf.download(tickers, start=start_date, end=end_date)['Close']   
+# prices = yf.download(tickers, start=start_date, end=end_date)['Close']   
 
-filled_prices = prices.fillna(method='ffill').fillna(method='bfill')
+# filled_prices = prices.fillna(method='ffill').fillna(method='bfill')
 
-model = XGBRegressor()
-model.fit(filled_prices.shift(1), filled_prices)
+# model = XGBRegressor()
+# model.fit(filled_prices.shift(1), filled_prices)
 
-# Monte Carlo simulation
-sims = 1000
-horizons = 252
+# # Monte Carlo simulation
+# sims = 1000
+# horizons = 252
 
-# Pre-allocate 3D numpy array instead of DataFrame 
-sim_paths = np.zeros((sims, len(tickers), horizons+1))
+# # Pre-allocate 3D numpy array instead of DataFrame 
+# sim_paths = np.zeros((sims, len(tickers), horizons+1))
 
-for i in range(sims):
-  path = filled_prices.iloc[-1].values
+# for i in range(sims):
+#   path = filled_prices.iloc[-1].values
 
-  for j in range(horizons):
-    noise = norm.rvs(0, filled_prices.std(), size=len(tickers))
-    predictions = model.predict(path.reshape(1,-1))[0]  
-    path = predictions + noise
+#   for j in range(horizons):
+#     noise = norm.rvs(0, filled_prices.std(), size=len(tickers))
+#     predictions = model.predict(path.reshape(1,-1))[0]  
+#     path = predictions + noise
 
-    sim_paths[i, :, j+1] = path
+#     sim_paths[i, :, j+1] = path
 
-# Take mean across sims  
-projections = sim_paths.mean(axis=0)
+# # Take mean across sims  
+# projections = sim_paths.mean(axis=0)
 
-# Plot 
-fig = px.line(projections)
-fig.add_scatter(x=filled_prices.index, y=filled_prices, mode='lines')
+# # Plot 
+# fig = px.line(projections)
+# fig.add_scatter(x=filled_prices.index, y=filled_prices, mode='lines')
 
-# Display in Streamlit
-st.header('Monte Carlo Projections')
-st.plotly_chart(fig)
-######################################################8/2/23############################################################################
+# # Display in Streamlit
+# st.header('Monte Carlo Projections')
+# st.plotly_chart(fig)
+# ######################################################8/2/23############################################################################
 # footer 
 st.markdown("""---""")
 st.markdown('Made with :heart: by [Jordan Clayton](https://dca-rsi.streamlit.app/Contact_Me)')
