@@ -276,6 +276,7 @@ else:
     tickers = st.session_state.tickers
 
 
+# Assume rsi_df is initialized before the loop
 rsi_df = pd.DataFrame(columns=['Ticker', 'RSI'])
 
 # Loop through tickers and calculate RSI
@@ -283,12 +284,14 @@ for ticker in tickers:
     # Get historical price data
     stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
     # Calculate RSI
-    rsi = get_rsi(stock_data)
+    rsi = get_rsi(stock_data)  # Assuming get_rsi is a function that returns RSI as a DataFrame or Series
     last_rsi = rsi.iloc[-1]
 
-    # Add RSI to dataframe
-    rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
-    # sort the dataframe by RSI
+    # Add RSI to DataFrame
+    new_row = pd.DataFrame({'Ticker': [ticker], 'RSI': [last_rsi]})
+    rsi_df = pd.concat([rsi_df, new_row], ignore_index=True)
+
+    # Sort the DataFrame by RSI
     rsi_df = rsi_df.sort_values(by=['RSI'], ascending=True)
 
 # Save tickers to SessionState
@@ -299,9 +302,7 @@ st.caption(':point_down: Check any of the boxes below to see more details about 
 
 
 with st.expander("Weights & RSI"):
-
-    # Display pie chart 
-    
+    # Display pie chart
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -316,7 +317,9 @@ with st.expander("Weights & RSI"):
     with col3:
         st.markdown(f'''<h3 style="text-align:center;">RSI</h3> 
         <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
-        st.dataframe(rsi_df.style.hide_index())
+        # Convert the rsi_df DataFrame to HTML and hide the index, then use st.write to display HTML
+        html_rsi = rsi_df.to_html(index=False)
+        st.write(html_rsi, unsafe_allow_html=True)
 
         
 with st.expander("Performance Expectations"):
