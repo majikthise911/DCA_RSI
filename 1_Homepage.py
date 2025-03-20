@@ -68,13 +68,16 @@ st.markdown("""---""")
 # Display tickers in a table
 st.markdown('''### 2. What? Enter assets you would like to test as a portfolio''')
 
-tickers_string = st.text_input('Tickers', 'TSLA,ETH-USD,BTC-USD,AVAX-USD,DOT-USD,COIN,XRP-USD,ARKK,AMZN,USD,COIN,NVDA,SQ,SHOP,PLTR').upper()
+# For example: 'TSLA, MSFT, NVDA, META'
+tickers_string = st.text_input('Tickers', 'TSLA, VTI, VYM, ARKW, VYMI, VXUS, ARKVX, ARKX, COIN, BTC-USD, XRP-USD, ETH-USD, DOGE-USD, AVAX-USD, SOL-USD, FET-USD, DOT-USD, LINK-USD').upper()
 
-tickers = tickers_string.split(',')
+# Remove extra spaces from each ticker
+tickers = [ticker.strip() for ticker in tickers_string.split(',')]
 
 with st.expander("Tickers"):
-     ticker_df = pd.DataFrame(tickers, columns=['Tickers'])   
-     st.table(ticker_df)
+    ticker_df = pd.DataFrame(tickers, columns=['Tickers'])
+    st.table(ticker_df)
+
 
 
 #################################################3/24/23##########################################################################
@@ -107,7 +110,7 @@ with col2:
 
 st.markdown("""---""")
 
-risk_free_rate = 0.02
+risk_free_rate = 0.04
 
 # Hide Streamlit Menu and Footer
 hide_st_style = """
@@ -177,9 +180,22 @@ weights = {}
 # Add risk_free_rate as an argument - this fixed the error that did not let me remove the try and except block 
 risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
 
+###########################################################################################################################
 # Download data
-stocks_df = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+stocks_df = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True)['Close']
 
+# Flatten MultiIndex columns if they exist (Plotly Express doesn't support MultiIndex)
+if isinstance(stocks_df.columns, pd.MultiIndex):
+    stocks_df.columns = stocks_df.columns.get_level_values(1)
+
+# Drop tickers with no data (all values NaN)
+stocks_df = stocks_df.dropna(axis=1, how='all')
+
+# Warn if some tickers failed to download
+failed_tickers = set(tickers) - set(stocks_df.columns)
+if failed_tickers:
+    st.warning("The following tickers failed to download and were removed: " + ", ".join(failed_tickers))
+###############################################################################################################################
 # Plot Individual Stock Prices
 fig_price = px.line(stocks_df, title='Price of Individual Stocks')
 
@@ -258,7 +274,12 @@ rsi_window = st.sidebar.slider('RSI Window', 1, 200, 14)
 
 # Define function to calculate RSI for a given DataFrame
 def get_rsi(data):
-    delta = data['Adj Close'].diff()
+    # Use 'Adj Close' if available, otherwise fallback to 'Close'
+    if 'Adj Close' in data.columns:
+        price = data['Adj Close']
+    else:
+        price = data['Close']
+    delta = price.diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
     avg_gain = gain.rolling(window=rsi_window).mean()
@@ -266,6 +287,7 @@ def get_rsi(data):
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
     return rsi
+
 
 
 # Get list of tickers from user input
@@ -284,18 +306,20 @@ for ticker in tickers:
     stock_data = yf.download(ticker, start=start_date, end=dt.datetime.now().strftime('%Y-%m-%d'))
     # Calculate RSI
     rsi = get_rsi(stock_data)
-    last_rsi = rsi.iloc[-1]
+    last_rsi = float(rsi.iloc[-1])  # Convert to a plain float
 
     # Add RSI to dataframe
-    rsi_df = rsi_df.append({'Ticker': ticker, 'RSI': last_rsi}, ignore_index=True)
-    # sort the dataframe by RSI
-    rsi_df = rsi_df.sort_values(by=['RSI'], ascending=True)
+    rsi_df = pd.concat([rsi_df, pd.DataFrame([{'Ticker': ticker, 'RSI': last_rsi}])], ignore_index=True)
+
+# Sort the dataframe by RSI once, after processing all tickers
+rsi_df = rsi_df.sort_values(by=['RSI'], ascending=True)
 
 # Save tickers to SessionState
 if 'tickers' not in st.session_state:
     st.session_state.tickers = rsi_df
 
 st.caption(':point_down: Check any of the boxes below to see more details about the portfolio.')
+
 
 
 with st.expander("Weights & RSI"):
@@ -316,7 +340,7 @@ with st.expander("Weights & RSI"):
     with col3:
         st.markdown(f'''<h3 style="text-align:center;">RSI</h3> 
         <p style="text-align:center;">Buy <= 30, Sell >= 70</p>''', unsafe_allow_html=True)
-        st.dataframe(rsi_df.style.hide_index())
+        st.dataframe(rsi_df)
 
         
 with st.expander("Performance Expectations"):
@@ -442,13 +466,12 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Update imports
-from openai.error import InvalidRequestError
+#from openai._exceptions import InvalidRequestError  # type: ignore
 
 # New function to get portfolio analysis  
 def get_portfolio_analysis(weights_df):
-
-  # Craft prompt with portfolio weights
-  prompt = f'''write a report on the dataframe. 
+    # Craft prompt with portfolio weights
+    prompt = f'''write a report on the dataframe. 
     Please provide your information using markdown labeled sub-headings and bullet points for each block of text.
     Discuss the Sharpe ratio and correlation of the optimized portfolio.
     Compare the optimized portfolio to the S&P 500 and discuss the differences.
@@ -456,22 +479,22 @@ def get_portfolio_analysis(weights_df):
     Offer suggestions to better optimize and diversify the portfolio and provide logic for your suggestions. : {rsi_df.to_string()}{df.to_string()}{weights_df.to_string()}
     Offer an example portfolio with allocations that incorporates your suggestions to further optimize and 
     output this suggested portfolio in a table with one column for the new suggested allocations and another for the original optimized portfolio'''
-  
-  try:
-    # Use Chat Completions endpoint
-    response = openai.ChatCompletion.create(
-      model="gpt-4",  
-      messages=[
-        {"role": "system", "content": "You are an investment advisor giving portfolio analysis"},
-        {"role": "user", "content": prompt}
-      ]
-    )
-  except InvalidRequestError as e:
-    # Handle incorrect API endpoint error
-    print(e)
-    return None
-  
-  return response.choices[0].message.content
+    
+    try:
+        # Use Chat Completions endpoint
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an investment advisor giving portfolio analysis"},
+                {"role": "user", "content": prompt}
+            ]
+        )
+    except Exception as e:
+        print(e)
+        return None
+    
+    return response.choices[0].message.content
+
 portfolio_analysis = get_portfolio_analysis(weights_df)
 
 
