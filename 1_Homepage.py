@@ -69,7 +69,7 @@ st.markdown("""---""")
 st.markdown('''### 2. What? Enter assets you would like to test as a portfolio''')
 
 # For example: 'TSLA, MSFT, NVDA, META'
-tickers_string = st.text_input('Tickers', 'TSLA, VTI, VYM, ARKW, VYMI, VXUS, ARKVX, ARKX, COIN, BTC-USD, XRP-USD, ETH-USD, DOGE-USD, AVAX-USD, SOL-USD, FET-USD, DOT-USD, LINK-USD').upper()
+tickers_string = st.text_input('Tickers', 'AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, META, NFLX, VTI, VYM, ARKW, COIN, BTC-USD, ETH-USD').upper()
 
 # Remove extra spaces from each ticker
 tickers = [ticker.strip() for ticker in tickers_string.split(',')]
@@ -106,7 +106,12 @@ with col2:
     if 'end_date' not in st.session_state:
         st.session_state.end_date = datetime.today()
 
-    end_date = st.date_input("End Date", st.session_state.end_date)
+    end_date = st.date_input("End Date", st.session_state.end_date, max_value=datetime.today())
+    
+    # Validate end date
+    if end_date > datetime.today().date():
+        st.error("❌ End date cannot be in the future! Please select today or an earlier date.")
+        st.stop()
 
 st.markdown("""---""")
 
@@ -181,20 +186,85 @@ weights = {}
 risk_free_rate = 0.02  # Assuming a risk-free rate of 2%, you can adjust this value as needed
 
 ###########################################################################################################################
-# Download data
-stocks_df = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True)['Close']
+# Download data with better error handling
+st.info(f"📊 Downloading data for {len(tickers)} tickers from {start_date} to {end_date}...")
 
-# Flatten MultiIndex columns if they exist (Plotly Express doesn't support MultiIndex)
-if isinstance(stocks_df.columns, pd.MultiIndex):
-    stocks_df.columns = stocks_df.columns.get_level_values(1)
+try:
+    # Try downloading with progress bar
+    with st.spinner("Downloading market data..."):
+        data = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True, progress=False)
+    
+    # Check if we got any data
+    if data.empty:
+        st.error("❌ No data returned from yfinance API. This might be a temporary API issue.")
+        st.info("🔄 **Trying alternative approach...**")
+        
+        # Try downloading one ticker at a time as fallback
+        successful_tickers = []
+        stocks_data = {}
+        
+        for ticker in tickers[:5]:  # Try first 5 tickers only
+            try:
+                st.write(f"Trying {ticker}...")
+                # Add more debugging info
+                st.write(f"Date range: {start_date} to {end_date}")
+                
+                ticker_data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True, progress=False)
+                st.write(f"Raw data shape: {ticker_data.shape}")
+                st.write(f"Columns: {list(ticker_data.columns)}")
+                
+                if not ticker_data.empty and 'Close' in ticker_data.columns:
+                    stocks_data[ticker] = ticker_data['Close']
+                    successful_tickers.append(ticker)
+                    st.success(f"✅ {ticker} downloaded successfully - {len(ticker_data)} rows")
+                else:
+                    st.warning(f"❌ {ticker} returned empty data or no Close column")
+            except Exception as e:
+                st.warning(f"❌ {ticker} failed: {str(e)}")
+        
+        if successful_tickers:
+            stocks_df = pd.DataFrame(stocks_data)
+            st.success(f"🎉 Successfully downloaded {len(successful_tickers)} tickers: {', '.join(successful_tickers)}")
+        else:
+            st.error("❌ All tickers failed to download. This appears to be a yfinance API issue.")
+            st.info("💡 **Possible solutions:**")
+            st.info("- Try again in a few minutes (API might be temporarily down)")
+            st.info("- Check your internet connection")
+            st.info("- Try a different date range")
+            st.stop()
+    else:
+        # Normal processing
+        stocks_df = data['Close']
+        
+        # Flatten MultiIndex columns if they exist (Plotly Express doesn't support MultiIndex)
+        if isinstance(stocks_df.columns, pd.MultiIndex):
+            stocks_df.columns = stocks_df.columns.get_level_values(1)
 
-# Drop tickers with no data (all values NaN)
-stocks_df = stocks_df.dropna(axis=1, how='all')
+        # Drop tickers with no data (all values NaN)
+        stocks_df = stocks_df.dropna(axis=1, how='all')
 
-# Warn if some tickers failed to download
-failed_tickers = set(tickers) - set(stocks_df.columns)
-if failed_tickers:
-    st.warning("The following tickers failed to download and were removed: " + ", ".join(failed_tickers))
+        # Warn if some tickers failed to download
+        failed_tickers = set(tickers) - set(stocks_df.columns)
+        if failed_tickers:
+            st.warning("The following tickers failed to download and were removed: " + ", ".join(failed_tickers))
+
+        # Check if we have any data left after removing failed tickers
+        if stocks_df.empty or len(stocks_df.columns) == 0:
+            st.error("❌ No ticker data could be downloaded! Please check your ticker symbols and try again.")
+            st.info("💡 **Common issues:**")
+            st.info("- Crypto tickers: Use BTC-USD, ETH-USD, etc. (not BTC, ETH)")
+            st.info("- Some tickers may be delisted or have different symbols")
+            st.info("- Try using more common tickers like: AAPL, MSFT, GOOGL, AMZN, TSLA")
+            
+            # Provide fallback tickers
+            fallback_tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX']
+            st.info(f"🔄 **Fallback suggestion:** Try these reliable tickers: {', '.join(fallback_tickers)}")
+            st.stop()  # Stop execution to prevent further errors
+
+except Exception as e:
+    st.error(f"❌ Error downloading data: {str(e)}")
+    st.info("🔄 **This might be a temporary yfinance API issue. Please try again in a few minutes.**")
+    st.stop()
 ###############################################################################################################################
 # Plot Individual Stock Prices
 fig_price = px.line(stocks_df, title='Price of Individual Stocks')
@@ -230,7 +300,9 @@ ef = EfficientFrontier(mu, S)
 ef.add_objective(objective_functions.L2_reg, gamma=5)
 # ef.add_constraint(lambda w: all(wi >= 0.05 for wi in w)) # delete
 # ef.add_constraint(lambda w: sum(w) == 1) # delete
-ef.max_sharpe(risk_free_rate)  # Add risk_free_rate argument here
+#ef.max_sharpe(risk_free_rate)  # Add risk_free_rate argument here
+ef.min_volatility()
+
 weights = ef.clean_weights()
 
 expected_annual_return, annual_volatility, sharpe_ratio = ef.portfolio_performance()
